@@ -14,7 +14,6 @@ jobs:
   test-orb-locally:
     docker:
       - image: circleci/circleci-cli
-    working_directory: ~/repo
     steps:
       - checkout
       - run:
@@ -26,7 +25,6 @@ jobs:
   publish:
     docker:
       - image: circleci/circleci-cli
-    working_directory: ~/repo
     steps:
       - checkout
       - run:
