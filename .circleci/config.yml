@@ -36,4 +36,4 @@ jobs:
       - run:
           name: Promote to prod
           command: |
-            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} patch
+            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} patch --token ${CIRCLE_API_KEY}
