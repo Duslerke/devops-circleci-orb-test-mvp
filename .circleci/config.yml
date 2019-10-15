@@ -20,9 +20,8 @@ jobs:
           name: Pack and Validate
           command: |
             circleci config pack src/ > packed.yml
-            ls -la
-            circleci orb validate packed.yml --token ${CIRCLECI_API_KEY}
-            circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} --token ${CIRCLECI_API_KEY}
+            circleci orb validate packed.yml 
+            circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1}
   publish:
     docker:
       - image: circleci/circleci-cli
@@ -31,4 +30,4 @@ jobs:
       - run:
           name: Promote to prod
           command: |
-            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} patch --token ${CIRCLECI_API_KEY}
+            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} patch
