@@ -13,4 +13,4 @@ jobs:
     steps:
       - checkout
       - my_command:
-          some_word: Hi
+          some_word: "Hi from GitHub"
