@@ -19,10 +19,7 @@ jobs:
       - run:
           name: Pack and Validate
           command: |
-            
-
-            repo_prefix="devops-circleci-orb-";
-            ORB_NAME=${${CIRCLE_PROJECT_REPONAME}#$prefix}; 
+            ORB_NAME=test-mvp 
             circleci config pack src/ > packed.yml
             circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
             if circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
