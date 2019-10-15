@@ -15,7 +15,7 @@ orbs:
           - image: circleci/ruby:2.4.2-jessie-node
         steps:
           - checkout
-          - run: "circleci orb validate ../src/orb.yml"
+          - run: pwd
           - my_command:
               some_word: Hi
             
