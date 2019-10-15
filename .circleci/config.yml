@@ -1,0 +1,11 @@
+version: 2.1
+
+orbs:
+  hello: duslerke/my-test-orb@volatile
+
+workflows:
+  hello-workflow:
+    jobs:
+      my_job:
+        steps:
+          - hello/my_build
