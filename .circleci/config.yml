@@ -1,14 +1,6 @@
 version: 2.1
 
 orbs:
-  helloOrb:
-    commands:
-      my_command:
-        parameters:
-          some_word:
-            type: string
-        steps:
-          - run: echo "<<parameters.some_word>> World"  
     jobs:
       my_build:
         docker:
@@ -16,11 +8,3 @@ orbs:
         steps:
           - checkout
           - run: circleci orb validate src/orb.yml
-          - my_command:
-              some_word: Hi
-            
-
-workflows:
-  hello-workflow:
-    jobs:
-      - helloOrb/my_build
