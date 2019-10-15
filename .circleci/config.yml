@@ -24,7 +24,7 @@ jobs:
             if circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} --token ${CIRCLE_API_KEY}; then
               echo Existing Orb updated
             else
-              circleci orb create lbh-test/${CIRCLE_JOB} --token ${CIRCLE_API_KEY}
+              circleci orb create lbh-test/${CIRCLE_JOB} --no-prompt --token ${CIRCLE_API_KEY}
               circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} --token ${CIRCLE_API_KEY}
               echo New Orb published
             fi
