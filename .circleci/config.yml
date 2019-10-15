@@ -2,8 +2,8 @@ version: 2.1
 
 orbs:
     orb-tools: circleci/orb-tools
-    
-workflows:
+
+jobs:
   orb-validation-workflow:    
     jobs:
         docker:
