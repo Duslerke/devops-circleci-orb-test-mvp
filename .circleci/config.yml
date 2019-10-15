@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
     jobs:
-      my_build:
         docker:
           - image: circleci/circleci-cli
         steps:
