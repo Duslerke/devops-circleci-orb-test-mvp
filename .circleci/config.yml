@@ -22,4 +22,4 @@ orbs:
 workflows:
   hello-workflow:
     jobs:
-      - helloOrb/build
+      - helloOrb/my_build
