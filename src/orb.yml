@@ -1,0 +1,16 @@
+version: 2.1
+commands:
+  my_command:
+    parameters:
+      some_word:
+        type: string
+    steps:
+      - run: echo "<<parameters.some_word>> World"
+jobs:
+  my_build:
+    docker:
+      - image: circleci/ruby:2.4.2-jessie-node
+    steps:
+      - checkout
+      - my_command:
+          some_word: Hi
