@@ -1,13 +1,10 @@
 version: 2.1
-
 orbs:
     orb-tools: circleci/orb-tools@8.27.4
-
 jobs:
-  orb-validation-workflow:    
-    jobs:
-        docker:
-          - image: circleci/circleci-cli
-        steps:
-          - checkout
-          - run: circleci orb validate src/orb.yml
+  orb-validation-workflow:
+    docker:
+      - image: circleci/circleci-cli
+    steps:
+      - checkout
+      - run: circleci orb validate src/orb.yml
