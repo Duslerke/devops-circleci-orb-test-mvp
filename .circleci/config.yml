@@ -15,7 +15,7 @@ orbs:
           - image: circleci/circleci-cli
         steps:
           - checkout
-          - run: circleci help
+          - run: circleci config validate .circleci/config.yml
           - my_command:
               some_word: Hi
             
