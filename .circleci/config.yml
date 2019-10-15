@@ -8,16 +8,18 @@ orbs:
         some_word:
           type: string
       steps:
-        - run: echo "<<parameters.some_word>> World"
-  jobs:
-    my_build:
-      docker:
-        - image: circleci/ruby:2.4.2-jessie-node
-      steps:
-        - checkout
-        - my_command:
-            some_word: Hi
+        - run: echo "<<parameters.some_word>> World"  
+    jobs:
+      my_build:
+        docker:
+          - image: circleci/ruby:2.4.2-jessie-node
+        steps:
+          - checkout
+          - my_command:
+              some_word: Hi
+            
+
 workflows:
   hello-workflow:
     jobs:
-      - hello/build
+      - helloOrb/build
