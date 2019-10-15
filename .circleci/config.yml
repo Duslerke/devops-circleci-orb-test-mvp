@@ -21,11 +21,11 @@ jobs:
           command: |
             circleci config pack src/ > packed.yml
             circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
-            if circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} --token ${CIRCLE_API_KEY}; then
+            if circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
               echo Existing Orb updated
             else
               circleci orb create lbh-test/${CIRCLE_JOB} --no-prompt --token ${CIRCLE_API_KEY}
-              circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} --token ${CIRCLE_API_KEY}
+              circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}
               echo New Orb published
             fi
   publish:
@@ -36,4 +36,4 @@ jobs:
       - run:
           name: Promote to prod
           command: |
-            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH}-${CIRCLE_SHA1} patch --token ${CIRCLE_API_KEY}
+            circleci orb publish promote lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
