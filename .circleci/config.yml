@@ -15,7 +15,7 @@ orbs:
           - image: circleci/ruby:2.4.2-jessie-node
         steps:
           - checkout
-          - run: pwd
+          - run: pwd; ls -la
           - my_command:
               some_word: Hi
             
