@@ -4,11 +4,11 @@ orbs:
   helloOrb:
     commands:
       my_command:
-      parameters:
-        some_word:
-          type: string
-      steps:
-        - run: echo "<<parameters.some_word>> World"  
+        parameters:
+          some_word:
+            type: string
+        steps:
+          - run: echo "<<parameters.some_word>> World"  
     jobs:
       my_build:
         docker:
