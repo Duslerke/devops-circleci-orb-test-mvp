@@ -22,7 +22,7 @@ jobs:
             ORB_NAME=test-mvp 
             circleci config pack src/ > packed.yml
             circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
-            if circleci orb publish packed.yml lbh-test/${CIRCLE_JOB}@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
+            if circleci orb publish packed.yml lbh-test/${ORB_NAME}@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
               echo Existing Orb updated
             else
               circleci orb create lbh-test/${ORB_NAME} --no-prompt --token ${CIRCLE_API_KEY}
