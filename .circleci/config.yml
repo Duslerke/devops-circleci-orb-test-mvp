@@ -54,20 +54,11 @@ jobs:
             echo $CURRENT_VERSION
             echo $CIRCLE_TAG
             echo $NEXT_VERSION
-           
-            # Check proposed version is a valid semantic version
-            if [[ "$NEXT_VERSION" == "$SEMANTIC_VERSION_REGEX" ]]; then
-              # Check proposed version is not the same as the current version
-              if [[ "$CURRENT_VERSION" == "$NEXT_VERSION" ]]; then
-                echo "ERROR: Proposed new version number ($NEXT_VERSION) equals already published current version number ($CURRENT_VERSION)"
-                return 1
-              else
-              
-              fi
-              circleci orb publish promote lbh-test/test-mvp@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
-            else
-              echo "ERROR: Proposed new version number ($NEXT_VERSION) is not a valid semantic version. See https://semver.org/"
-              return 1
-            fi
+            
+            TEST_VAR=2
+            echo $TEST_VAR
+            
+
+
             
             
