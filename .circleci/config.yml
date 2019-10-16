@@ -16,7 +16,7 @@ commands:
   get-version-number:
     steps:
     - run: |
-        lbh-test/test-mvp@0.0.19 | grep -oE '(\d+\.)+\d+\b'
+        grep --version
 
 jobs:
   test-orb-locally:
