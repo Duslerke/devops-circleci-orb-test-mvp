@@ -12,6 +12,12 @@ workflows:
             tags:
               only: /^\d+\.\d+\.\d+$/
 
+commands:
+  get-version-number:
+    steps:
+    - run: |
+        circleci orb info lbh-test/test-mvp@volatile | grep -oE '(\d+\.)+\d+\b'
+
 jobs:
   test-orb-locally:
     docker:
@@ -41,11 +47,11 @@ jobs:
             export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oE '(\d+\.)+\d+\b')
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oE '(\d+\.)+\d+\b')" >> $BASH_ENV
             env
+            echo get-version-number
       - run:
           name: Promote to prod
           command: |
             env
-            grep test
             echo $CIRCLE_TAG
             echo $($CIRCLE_TAG | grep -oE '(\d+\.)+\d+\b')
             circleci orb publish promote lbh-test/test-mvp@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
