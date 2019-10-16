@@ -40,6 +40,7 @@ jobs:
           command: |
             echo "export CURRENT_VERSION=`circleci orb info lbh-test/test-mvp@volatile | grep -oE '(\d+\.)+\d+\b'`" >> $BASH_ENV
             echo "export NEXT_VERSION=`echo $CIRCLE_TAG | grep -oE '(\d+\.)+\d+\b'`" >> $BASH_ENV
+            env
       - run:
           name: Promote to prod
           command: |
