@@ -43,5 +43,6 @@ jobs:
       - run:
           name: Promote to prod
           command: |
-            echo current: $CURRENT_VERSION next: $NEXT_VERSION
+            cat $BASH_ENV
+            echo current: ${CURRENT_VERSION} next: ${NEXT_VERSION}
             circleci orb publish promote lbh-test/test-mvp@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
