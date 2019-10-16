@@ -45,6 +45,6 @@ jobs:
           name: Promote to prod
           command: |
             env
-            echo $CIRCLE_API_KEY
+            echo $CIRCLE_TAG
             echo $($CIRCLE_TAG | grep -oE '(\d+\.)+\d+\b')
             circleci orb publish promote lbh-test/test-mvp@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
