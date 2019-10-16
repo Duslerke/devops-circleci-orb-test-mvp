@@ -55,8 +55,13 @@ jobs:
             echo $CIRCLE_TAG
             echo $NEXT_VERSION
             
-            TEST_VAR=2
-            echo $TEST_VAR
+            IFS='.' read -r -a CURRENT_VERSION_ARRAY <<< "$CURRENT_VERSION"
+            
+            for index in "${!CURRENT_VERSION_ARRAY[@]}"
+            do
+                echo "$index ${CURRENT_VERSION_ARRAY[index]}"
+            done
+           
             
 
 
