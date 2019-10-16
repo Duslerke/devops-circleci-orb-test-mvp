@@ -38,7 +38,7 @@ jobs:
       - run:
           name: Configure Environment
           command: |
-            export CURRENT_VERSION=`eval circleci orb info lbh-test/test-mvp@volatile | grep -oE '(\d+\.)+\d+\b'`
+            export CURRENT_VERSION=eval `circleci orb info lbh-test/test-mvp@volatile | grep -oE '(\d+\.)+\d+\b'`
             echo "export NEXT_VERSION=`echo $CIRCLE_TAG | grep -oE '(\d+\.)+\d+\b'`" >> $BASH_ENV
             env
       - run:
