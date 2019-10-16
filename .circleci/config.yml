@@ -36,6 +36,8 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Calculate version
+          eval: "CURRENT_VERSION=`circleci orb info lbh-test/test-mvp | grep -oE '(\d+\.)+\d+\b'`"
           name: Promote to prod
           command: |
             CURRENT_VERSION=`circleci orb info lbh-test/test-mvp | grep -oE '(\d+\.)+\d+\b'`
