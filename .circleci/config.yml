@@ -9,8 +9,8 @@ workflows:
           filters:
             branches:
               only: master
-          tags:
-            only: /^\d+\.\d+\.\d+$/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
 
 jobs:
   test-orb-locally:
