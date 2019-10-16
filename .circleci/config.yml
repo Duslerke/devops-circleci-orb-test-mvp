@@ -38,6 +38,6 @@ jobs:
       - run:
           name: Promote to prod
           command: |
-            CURRENT_VERSION=`circleci orb info lbh-test/test-mvp | grep -oE '(\d+\.)+\d+\b'`
-            NEXT_VERSION=`echo ${CIRCLE_TAG} | grep -oE '(\d+\.)+\d+\b'`
+            echo CURRENT_VERSION=`circleci orb info lbh-test/test-mvp | grep -oE '(\d+\.)+\d+\b'`
+            echo NEXT_VERSION=`echo ${CIRCLE_TAG} | grep -oE '(\d+\.)+\d+\b'`
             circleci orb publish promote lbh-test/test-mvp@dev:${CIRCLE_BRANCH} patch --token ${CIRCLE_API_KEY}
