@@ -16,6 +16,7 @@ commands:
   get-version-number:
     steps:
     - run: |
+        circleci orb info lbh-test/test-mvp@volatile
         env | grep -oE PATH
 
 jobs:
