@@ -16,7 +16,7 @@ commands:
   get-version-number:
     steps:
     - run: |
-        grep -oE test
+        grep -oe test
 
 jobs:
   test-orb-locally:
