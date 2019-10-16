@@ -16,7 +16,7 @@ commands:
   get-version-number:
     steps:
     - run: |
-        circleci orb info lbh-test/test-mvp@volatile | grep -oE PATH
+        circleci orb info lbh-test/test-mvp@volatile | grep Latest
 jobs:
   test-orb-locally:
     docker:
