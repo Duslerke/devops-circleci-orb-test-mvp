@@ -52,7 +52,7 @@ jobs:
           command: |
             echo $CURRENT_VERSION
             echo $CIRCLE_TAG
-            echo `python src/publish_version_helper.py -t $CURRENT_VERSION -c $CIRCLE_TAG`
+            echo python src/publish_version_helper.py -t $CURRENT_VERSION -c $CIRCLE_TAG
            
             
 
