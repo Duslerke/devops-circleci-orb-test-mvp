@@ -52,6 +52,20 @@ jobs:
             echo $CURRENT_VERSION
             echo $CIRCLE_TAG
             echo python src/publish_version_helper.py -t $CURRENT_VERSION -c $CIRCLE_TAG
+            function test() {
+              local -a currentv=($(echo $1 | tr "." "\n"))
+              local -a nextv=($(echo $2 | tr "." "\n"))
+              for i in "${!currentv[@]}"
+              do
+                  for j in "${!nextv[@]}"
+                  do
+                      if [ $j -eq $i ]; then
+                          echo "$i ${currentv[i]}" "$j ${nextv[j]}"
+                      fi
+                  done        
+              done
+            }
+            test "one.tw o.three.four.five" "six.seven.eight.nine.ten"
            
             
 
