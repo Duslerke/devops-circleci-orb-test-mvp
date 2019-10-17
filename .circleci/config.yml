@@ -52,14 +52,7 @@ jobs:
           command: |
             echo $CURRENT_VERSION
             echo $CIRCLE_TAG
-            echo $NEXT_VERSION
-            
-            IFS='.' read -r -a CURRENT_VERSION_ARRAY \ <<< "$CURRENT_VERSION"
-            
-            for index in "${!CURRENT_VERSION_ARRAY[@]}"
-            do
-                echo "$index ${CURRENT_VERSION_ARRAY[index]}"
-            done
+            echo `python src/publish_version_helper.py -t $CURRENT_VERSION -c $CIRCLE_TAG`
            
             
 
