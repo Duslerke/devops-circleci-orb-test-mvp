@@ -65,7 +65,7 @@ jobs:
                   done        
               done
             }
-            test "one.tw o.three.four.five" "six.seven.eight.nine.ten"
+            test "one.two.three.four.five" "six.seven.eight.nine.ten"
            
             
 
