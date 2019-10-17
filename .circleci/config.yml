@@ -53,14 +53,27 @@ jobs:
             echo $CIRCLE_TAG
             echo python src/publish_version_helper.py -t $CURRENT_VERSION -c $CIRCLE_TAG
             function test() {
+              local -a posibilities=("major" "minor" "patch")
               local -a currentv=($(echo $1 | tr "." "\n"))
               local -a nextv=($(echo $2 | tr "." "\n"))
+              local vtype
               for i in "${!currentv[@]}"
               do
                   for j in "${!nextv[@]}"
                   do
                       if [ $j -eq $i ]; then
                           echo "$i ${currentv[i]}" "$j ${nextv[j]}"
+                          #check start
+                          if [ ${currentv[i]} -eq ${nextv[j]} ]; then
+                            break
+                          elif [ ${currentv[i]} -gt ${nextv[j]} ]; then
+                            echo ERROR: Current ${posibilities[$i]} version cannot be lower than the previous one
+                            exit 1 # terminate and indicate error
+                          else
+                            echo ${posibilities[$i]}
+                            return 0
+                          fi
+                          #check end
                       fi
                   done        
               done
