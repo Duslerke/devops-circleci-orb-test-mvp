@@ -117,7 +117,7 @@ jobs:
       #- get-version-number
       - run:
           name: Promote to prod
-          get-version-number
+          command: get-version-number
             
             #wfwefewfwefew
       - get-version-segment
