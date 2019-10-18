@@ -109,9 +109,10 @@ jobs:
                 fi
             }
 
-            #getReleaseType "1.2.222" "1.2.223"
+            #getReleaseType "1.2.222" "1.2.223" #getReleaseType $CURRENT_VERSION $NEXT_VERSION
             
-            echo "export VERSION_SEGMENT=$( getReleaseType $CURRENT_VERSION $NEXT_VERSION )" >> $BASH_ENV
+            echo "export VERSION_SEGMENT='five'" >> $BASH_ENV
+            
             
             env
       - run: 
