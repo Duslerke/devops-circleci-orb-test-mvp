@@ -20,7 +20,7 @@ commands:
   get-version-segment:
     description: "Get version segment name AND check Semantic versioning"
     steps:
-      - run: #command name hack
+      - run: echo "Getting version segment parameter" #command name hack - because of ridiculous circleci limitation
       - run: |
           function semanticChecker() {
               local -a posibilities=("major" "minor" "patch")
