@@ -17,6 +17,7 @@ commands:
     steps:
     - run: |
         circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
+  #get-version-segment:
 jobs:
   test-orb-locally:
     docker:
@@ -45,7 +46,7 @@ jobs:
           command: |
             echo "export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
-      - get-version-number
+      #- get-version-number
       - run:
           name: Promote to prod
           command: |
@@ -108,7 +109,16 @@ jobs:
                 fi
             }
 
-            getReleaseType "1.2.222" "1.3.0"
+            #getReleaseType "1.2.222" "1.2.223"
+            echo "export RELEASE_VERSION_SEGMENT=$(getReleaseType ${CURRENT_VERSION} ${NEXT_VERSION})" >> $BASH_ENV
+            
+            env
+      - run: 
+          name: find out if env var is passed
+          command: |
+            echo "New command"
+            env
+            echp "End"
 
 
             
