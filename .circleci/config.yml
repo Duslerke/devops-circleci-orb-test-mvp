@@ -22,6 +22,7 @@ commands:
     steps:
       - run: echo "Getting version segment parameter" #command name hack - because of ridiculous circleci limitation
       - run: |
+          #!/bin/sh
           function semanticChecker() {
               local -a posibilities=("major" "minor" "patch")
               local -n curr=$1 #pass arrays through reference
@@ -117,10 +118,9 @@ jobs:
       #- get-version-number
       - run:
           name: Promote to prod
-          command: get-version-number
+          command: |
             
-            #wfwefewfwefew
-      - get-version-segment
+
       - run: 
           name: find out if env var is passed
           command: |
