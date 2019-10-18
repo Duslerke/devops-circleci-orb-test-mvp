@@ -140,6 +140,7 @@ jobs:
             echo "New command"
             pwd
             ls
+            echo $(cat my_envvar_dir/vsegment-envvar)
             #env
             echo "End"
 
