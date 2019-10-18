@@ -13,7 +13,6 @@ workflows:
               only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
 
 commands:
-  name: dwadwad
   get-version-number:
     steps:
     - run: |
@@ -21,6 +20,7 @@ commands:
   get-version-segment:
     description: "Get version segment name AND check Semantic versioning"
     steps:
+      - run: #command name hack
       - run: |
           function semanticChecker() {
               local -a posibilities=("major" "minor" "patch")
