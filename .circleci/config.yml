@@ -115,10 +115,12 @@ jobs:
             #getReleaseType "1.2.222" "1.2.223" #getReleaseType $CURRENT_VERSION $NEXT_VERSION
             echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
             echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
-            echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION) > my_envvar_dir/vsegment-envvar
+            #hardcode temp
+            echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
             
-            echo "export SEGMENT=$(cat my_envvar_dir/vsegment-envvar)" >> $BASH_ENV    #export a command to access the var effortlessly
-            
+            echo "export SEGMENT=$($(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
+            echo "stuff"
+            echo $(cat my_envvar_dir/vsegment-envvar)
       - persist_to_workspace:
           root: my_envvar_dir
           paths:
