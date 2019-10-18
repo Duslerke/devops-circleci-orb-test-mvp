@@ -117,9 +117,7 @@ jobs:
       #- get-version-number
       - run:
           name: Promote to prod
-          command: |
-            echo $CURRENT_VERSION
-            echo $CIRCLE_TAG
+          get-version-number
             
             #wfwefewfwefew
       - get-version-segment
