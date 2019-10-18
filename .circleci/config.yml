@@ -17,7 +17,73 @@ commands:
     steps:
     - run: |
         circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
-  #get-version-segment:
+  get-version-segment:
+    steps:
+      - run: |
+          function semanticChecker() {
+              local -a posibilities=("major" "minor" "patch")
+              local -n curr=$1 #pass arrays through reference
+              local -n next=$2
+              for (( i=0; i<=3; i++ ))
+              do
+                  if [ $i -eq 3 ]; then
+                      echo "ERROR: orb version '"${next[0]}"."${next[1]}"."${next[2]}"' already exists."
+                      exit 1
+                  elif [ ${next[$i]} -gt ${curr[$i]} ]; then
+                      if [ $((${next[$i]} - ${curr[$i]})) -eq 1 ]; then
+                          local allLeadingZeroes=true
+
+                          for (( j=$(( $i+1 )); j<3; j++ ))
+                          do
+                              if [ ${next[$j]} -eq 0 ]; then
+                                  continue
+                              else
+                                  allLeadingZeroes=false
+                                  break
+                              fi
+                          done
+
+                          if [ $allLeadingZeroes == true ]; then
+                              echo "${posibilities[$i]}"
+                              return 0
+                          else
+                              echo "ERROR: Incorrect versioning. Upon '${posibilities[$i]}' increment, the numbers following it should be set to 0."
+                              exit 1
+                          fi
+
+                      else
+                          echo "ERROR: Incorrect versioning. Increment of '${posibilities[$i]}' is larger than 1, should be equal to 1."
+                          exit 1
+                      fi
+                  elif [ ${next[$i]} -eq ${curr[$i]} ]; then
+                      continue
+                  else
+                      echo "ERROR: New '${posibilities[$i]}' release version number cannot be lower than the one from the current version."
+                      exit 1
+                  fi
+              done
+          }
+
+          function getReleaseType() {
+              local -a currentv=($(echo $1 | tr "." "\n"))
+              local -a nextv=($(echo $2 | tr "." "\n"))
+
+              if [ ${#currentv[*]} -eq ${#nextv[*]} ]; then
+                  echo $( semanticChecker currentv nextv )
+              else
+                  echo "ERROR: Current and New version declaration lengths don't match"
+                  exit 1
+              fi
+          }
+          #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
+
+          mkdir -p my_envvar_dir
+
+          #hardcode temp
+          echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
+
+          echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
+
 jobs:
   test-orb-locally:
     docker:
@@ -53,73 +119,8 @@ jobs:
             echo $CURRENT_VERSION
             echo $CIRCLE_TAG
             
-            function semanticChecker() {
-                local -a posibilities=("major" "minor" "patch")
-                local -n curr=$1 #pass arrays through reference
-                local -n next=$2
-                for (( i=0; i<=3; i++ ))
-                do
-                    if [ $i -eq 3 ]; then
-                        echo "ERROR: orb version '"${next[0]}"."${next[1]}"."${next[2]}"' already exists."
-                        exit 1
-                    elif [ ${next[$i]} -gt ${curr[$i]} ]; then
-                        if [ $((${next[$i]} - ${curr[$i]})) -eq 1 ]; then
-                            local allLeadingZeroes=true
-
-                            for (( j=$(( $i+1 )); j<3; j++ ))
-                            do
-                                if [ ${next[$j]} -eq 0 ]; then
-                                    continue
-                                else
-                                    allLeadingZeroes=false
-                                    break
-                                fi
-                            done
-
-                            if [ $allLeadingZeroes == true ]; then
-                                echo "${posibilities[$i]}"
-                                return 0
-                            else
-                                echo "ERROR: Incorrect versioning. Upon '${posibilities[$i]}' increment, the numbers following it should be set to 0."
-                                exit 1
-                            fi
-
-                        else
-                            echo "ERROR: Incorrect versioning. Increment of '${posibilities[$i]}' is larger than 1, should be equal to 1."
-                            exit 1
-                        fi
-                    elif [ ${next[$i]} -eq ${curr[$i]} ]; then
-                        continue
-                    else
-                        echo "ERROR: New '${posibilities[$i]}' release version number cannot be lower than the one from the current version."
-                        exit 1
-                    fi
-                done
-            }
-
-            function getReleaseType() {
-                local -a currentv=($(echo $1 | tr "." "\n"))
-                local -a nextv=($(echo $2 | tr "." "\n"))
-
-                if [ ${#currentv[*]} -eq ${#nextv[*]} ]; then
-                    echo $( semanticChecker currentv nextv )
-                else
-                    echo "ERROR: Current and New version declaration lengths don't match"
-                    exit 1
-                fi
-            }
-
-            #getReleaseType "1.2.222" "1.2.223" #getReleaseType $CURRENT_VERSION $NEXT_VERSION
-            #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
-            #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
-            
-            mkdir -p my_envvar_dir
-            #hardcode temp
-            echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
-            
-            echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
-            
-            echo $(cat my_envvar_dir/vsegment-envvar)
+            #wfwefewfwefew
+      - get-version-segment
       - run: 
           name: find out if env var is passed
           command: |
