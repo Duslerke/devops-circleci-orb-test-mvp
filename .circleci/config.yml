@@ -49,9 +49,8 @@ jobs:
           command: |
             echo "export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
-      #- get-version-number
       - run:
-          name: Promote to prod
+          name: Get version segment name AND check Semantic versioning
           command: |
             function semanticChecker() {
                 local -a posibilities=("major" "minor" "patch")
@@ -117,11 +116,11 @@ jobs:
 
             echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
             
-
       - run: 
-          name: find out if env var is passed
+          name: Promote to prod
           command: |
             echo "New command"
+            echo "Promoting happens here. No point to add right now."
             pwd
             ls
             echo $(cat my_envvar_dir/vsegment-envvar)
