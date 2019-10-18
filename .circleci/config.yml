@@ -10,7 +10,7 @@ workflows:
 #             branches:
 #               only: master
             tags:
-              only: /.*(\d+\.\d+\.\d+).*/
+              only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
 
 commands:
   get-version-number:
