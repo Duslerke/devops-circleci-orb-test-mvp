@@ -57,6 +57,8 @@ jobs:
               local -a currentv=($(echo $1 | tr "." "\n"))
               local -a nextv=($(echo $2 | tr "." "\n"))
               local vtype
+              
+              
               for i in "${!currentv[@]}"
               do
                   for j in "${!nextv[@]}"
