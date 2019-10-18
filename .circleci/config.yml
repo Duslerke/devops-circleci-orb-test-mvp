@@ -138,7 +138,9 @@ jobs:
           name: find out if env var is passed
           command: |
             echo "New command"
-            env
+            pwd
+            ls
+            #env
             echo "End"
 
 
