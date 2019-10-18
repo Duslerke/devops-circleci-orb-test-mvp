@@ -48,6 +48,9 @@ jobs:
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
       #- get-version-number
       - run:
+          name: Variable pass setup
+          command: mkdir -p my_envvar_dir
+      - run:
           name: Promote to prod
           command: |
             echo $CURRENT_VERSION
@@ -111,10 +114,16 @@ jobs:
 
             #getReleaseType "1.2.222" "1.2.223" #getReleaseType $CURRENT_VERSION $NEXT_VERSION
             
-            echo "export VERSION_SEGMENT='five'" >> $BASH_ENV
+            echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION) > my_envvar_dir/vsegment-envvar
             
+            echo "export NEXT_VERSION=$(cat my_envvar_dir/vsegment-envvar)" >> $BASH_ENV    #export a command to access the var effortlessly
             
-            env
+      - persist_to_workspace:
+          root: my_envvar_dir
+          paths:
+            - vsegment-envvar
+      - attach_workspace:
+          at: my_envvar_dir
       - run: 
           name: find out if env var is passed
           command: |
