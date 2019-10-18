@@ -18,6 +18,7 @@ commands:
     - run: |
         circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
   get-version-segment:
+    description: "Get version segment name AND check Semantic versioning"
     steps:
       - run: |
           function semanticChecker() {
