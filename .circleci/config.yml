@@ -119,10 +119,6 @@ commands:
 
             echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
 
-            echo $CURRENT_VERSION
-            echo $NEXT_VERSION
-
-
 jobs:
   test-orb-locally:
     docker:
@@ -167,7 +163,9 @@ jobs:
             env
             echo "End"
             echo $SEGMENT
-
+            
+            echo $CURRENT_VERSION
+            echo $NEXT_VERSION
 
             
             
