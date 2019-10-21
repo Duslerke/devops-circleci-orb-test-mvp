@@ -28,8 +28,18 @@ commands:
             pwd
             ls -a
             bats -v
-#   get-version-segment:
-#     description: "Get version segment name AND check Semantic versioning"
+  get-test:
+    description: "env var pass test"
+    parameters:
+      silly-param:
+        description: "some text or smth"
+        type: string
+      envo-param:
+        description: "api key mb"
+        type: string
+    steps:
+      - run: echo "text" << parameters.silly-param >>
+      - run: echo "envo" << parameters.envo-param >>
 
 
 jobs:
@@ -55,6 +65,9 @@ jobs:
       - image: circleci/circleci-cli
     steps:
       - checkout
+      - get-test:
+          silly-param: "string"
+          envo-param: $CIRCLE_API_KEY
       - run:
           name: Configure Environment
           command: |
