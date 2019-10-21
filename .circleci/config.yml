@@ -28,58 +28,30 @@ commands:
             pwd
             ls -a
             bats -v
-  get-test:
-    description: "env var pass test"
+  get-version-segment:
+    description: "Extracts version numbers from the Release tag name and most recent orb version information.\
+                  Compares the two and checks if they comply with semantic versioning standards. Based on which\
+                  number has changed (first, middle, last), it gives a corresponding segment name as an output \
+                  (major, minor, patch). The output is exported as environment variable '$SEGMENT'."
     parameters:
-      silly-param:
-        description: "some text or smth"
+      orb-name:
+        description: "The name of the orb, who's current version will be checked. Should be in format: \
+                      'my-namespace-name/my-orb-name'. No need to provide a version name as the command grabs \
+                      the latest one available ('@volatile')."
         type: string
-      envo-param:
-        description: "api key mb"
+        #default: it could be $githubName/$repoName, however I feel that would cause confusion upon the first publish. It's for the better to set this explicitly.
+      release-tag-name:
+        description: "Takes in a one line string, extracts the version number from it. It will be used to compare to the \
+                      most recent existing orb's version number (2.4.17). Here you can pass a Release Tag environment \
+                      variable '$CIRCLE_TAG'."
         type: string
+        #default: there should be no default - this is the decider variable that makes a distinction between major, minor and patch releases.
     steps:
-      - run: echo "text << parameters.silly-param >>"
-      - run: echo "envo << parameters.envo-param >>"
-
-
-jobs:
-  test-orb-locally:
-    docker:
-      - image: circleci/circleci-cli
-    steps:
-      - checkout
       - run:
-          name: Pack and Validate
+          name: Extract and Export version numbers
           command: |
-            circleci config pack src/ > packed.yml
-            circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
-            if circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
-              echo Existing Orb updated
-            else
-              circleci orb create lbh-test/${ORB_NAME} --no-prompt --token ${CIRCLE_API_KEY}
-              circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}
-              echo New Orb published
-            fi
-  publish:
-    docker:
-      - image: circleci/circleci-cli
-    steps:
-      - checkout
-      - get-test:
-          silly-param: "most epic text"
-          envo-param: ${CIRCLE_API_KEY}
-      - run:
-          name: Configure Environment
-          command: |
-            echo "export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
-            echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
-      - install-bats
-      - run:
-          name: Check if current working dir is reset, run bats tests
-          command: |
-            pwd #looks like we're in the root of github
-            ls
-            bats ./tests/sample-tests.bats #pls work
+            echo "export CURRENT_VERSION=$(circleci orb info << parameters.orb-name >>@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
+            echo "export NEXT_VERSION=$(echo << parameters.release-tag-name >> | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
       - run:
           name: Get version segment name AND check Semantic versioning
           command: |
@@ -146,7 +118,41 @@ jobs:
             echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
 
             echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
-            
+
+
+
+
+jobs:
+  test-orb-locally:
+    docker:
+      - image: circleci/circleci-cli
+    steps:
+      - checkout
+      - run:
+          name: Pack and Validate
+          command: |
+            circleci config pack src/ > packed.yml
+            circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
+            if circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
+              echo Existing Orb updated
+            else
+              circleci orb create lbh-test/${ORB_NAME} --no-prompt --token ${CIRCLE_API_KEY}
+              circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}
+              echo New Orb published
+            fi
+  publish:
+    docker:
+      - image: circleci/circleci-cli
+    steps:
+      - checkout
+      - install-bats
+      - run:
+          name: Check if current working dir is reset, run bats tests
+          command: |
+            pwd #looks like we're in the root of github
+            ls
+            bats ./tests/sample-tests.bats #pls work
+   
       - run: 
           name: Promote to prod
           command: |
