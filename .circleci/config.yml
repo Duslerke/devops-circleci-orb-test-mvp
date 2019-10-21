@@ -133,7 +133,7 @@ commands:
     steps:
       - run:
           name: Executing BATS Tests
-           command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
+          command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
 
 jobs:
   test-orb-locally:
