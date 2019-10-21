@@ -20,10 +20,11 @@ commands:
   install-bats:
     description: Installs Bash Automated Testing System
     steps:
-      name: Install BATS
-      command: |
-        pwd
-        ls -a
+      - run:
+          name: Install BATS
+          command: |
+            pwd
+            ls -a
 #   get-version-segment:
 #     description: "Get version segment name AND check Semantic versioning"
 
@@ -56,6 +57,7 @@ jobs:
           command: |
             echo "export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
+      - install-bats
       - run:
           name: Get version segment name AND check Semantic versioning
           command: |
