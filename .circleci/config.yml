@@ -28,7 +28,6 @@ commands:
             pwd
             ls -a
             bats -v
-            bats ../tests/sample-tests.bats #pls work
 #   get-version-segment:
 #     description: "Get version segment name AND check Semantic versioning"
 
@@ -62,6 +61,12 @@ jobs:
             echo "export CURRENT_VERSION=$(circleci orb info lbh-test/test-mvp@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
             echo "export NEXT_VERSION=$(echo $CIRCLE_TAG | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
       - install-bats
+      - run:
+          name: Check if current working dir is reset, run bats tests
+          command: |
+            pwd
+            ls
+            bats ../tests/sample-tests.bats #pls work
       - run:
           name: Get version segment name AND check Semantic versioning
           command: |
