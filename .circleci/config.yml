@@ -17,6 +17,13 @@ commands:
     steps:
     - run: |
         circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
+  install-bats:
+    description: Installs Bash Automated Testing System
+    steps:
+      name: Install BATS
+      command: |
+        pwd
+        ls -a
 #   get-version-segment:
 #     description: "Get version segment name AND check Semantic versioning"
 
