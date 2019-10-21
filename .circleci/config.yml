@@ -118,6 +118,22 @@ commands:
             echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
 
             echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
+  run-bats-tests:
+    description: "Runs all BATS tests (.bats ext) in a specified directory, and its subdirectories if recursive flag is set to 'true'."
+    #reason for having this command, is - it's piece of documentation on how to run the bats tests, in case there's a need to go manual.
+    parameters:
+      tests-location:
+        description: "Specifies a path to the .bats tests location relative to the project's root. (Unless workdir was changed)"
+        type: string
+      recursive:
+        description: "If true, then it will run all tests from the specified directory, and its subdirectories. \
+                      If false, then it will run only the tests in the specified directory."
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Executing BATS Tests
+           command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
 
 jobs:
   test-orb-locally:
@@ -143,12 +159,15 @@ jobs:
     steps:
       - checkout
       - install-bats
-      - run:
-          name: Check if current working dir is reset, run bats tests
-          command: |
-            pwd #looks like we're in the root of github
-            ls
-            bats ./tests/sample-tests.bats #pls work
+#       - run:
+#           name: Check if current working dir is reset, run bats tests
+#           command: |
+#             pwd #looks like we're in the root of github
+#             ls
+#             bats ./tests/sample-tests.bats #pls work
+      - run-bats-tests:
+          tests-location: "tests"
+          recursive: false
       - get-version-segment:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
