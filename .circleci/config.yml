@@ -153,7 +153,7 @@ jobs:
             pwd #looks like we're in the root of github
             ls
             bats ./tests/sample-tests.bats #pls work
-      - get-version-number:
+      - get-version-segment:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
       - run: 
