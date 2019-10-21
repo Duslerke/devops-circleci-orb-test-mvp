@@ -23,8 +23,11 @@ commands:
       - run:
           name: Install BATS
           command: |
+            cd /tmp && git clone https://github.com/bats-core/bats-core.git && cd bats-core
+            sudo ./install.sh /usr/local
             pwd
             ls -a
+            bats -v
 #   get-version-segment:
 #     description: "Get version segment name AND check Semantic versioning"
 
