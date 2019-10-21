@@ -28,6 +28,7 @@ commands:
             pwd
             ls -a
             bats -v
+            bats ../tests/sample-tests.bats #pls work
 #   get-version-segment:
 #     description: "Get version segment name AND check Semantic versioning"
 
