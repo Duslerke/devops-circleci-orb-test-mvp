@@ -38,8 +38,8 @@ commands:
         description: "api key mb"
         type: string
     steps:
-      - run: echo "text" << parameters.silly-param >>
-      - run: echo "envo" << parameters.envo-param >>
+      - run: echo "text << parameters.silly-param >>"
+      - run: echo "envo << parameters.envo-param >>"
 
 
 jobs:
@@ -66,8 +66,8 @@ jobs:
     steps:
       - checkout
       - get-test:
-          silly-param: "string"
-          envo-param: $CIRCLE_API_KEY
+          silly-param: "most epic text"
+          envo-param: ${CIRCLE_API_KEY}
       - run:
           name: Configure Environment
           command: |
