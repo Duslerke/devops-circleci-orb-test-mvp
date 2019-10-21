@@ -119,7 +119,8 @@ commands:
 
             echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
 
-
+            echo $CURRENT_VERSION
+            echo $NEXT_VERSION
 
 
 jobs:
@@ -152,7 +153,9 @@ jobs:
             pwd #looks like we're in the root of github
             ls
             bats ./tests/sample-tests.bats #pls work
-   
+      - get-version-number:
+          orb-name: "lbh-test/test-mvp"
+          release-tag-name: $CIRCLE_TAG
       - run: 
           name: Promote to prod
           command: |
@@ -163,6 +166,7 @@ jobs:
             echo $(cat my_envvar_dir/vsegment-envvar)
             env
             echo "End"
+            echo $SEGMENT
 
 
             
