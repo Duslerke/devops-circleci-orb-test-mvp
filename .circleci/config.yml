@@ -212,7 +212,7 @@ orbs:
             description: "The circleci-cli Docker image, which includes the CircleCI CLI"
             parameters:
                tag:
-                 desctiption: "Specifies the version of docker image"
+                 description: "Specifies the version of docker image"
                    type: string
                    default: latest
             docker:
