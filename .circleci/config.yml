@@ -14,12 +14,12 @@ workflows:
           acc-token: $CIRCLE_API_KEY
           path-to-orb: "src/"
       - publish:
-            orb-name: "lbh-test/test-mvp"
-            release-tag-name: $CIRCLE_TAG
-            tests-location: "tests"
-            tests-recursive: true
-#           requires:
-#             - test-orb-locally
+          orb-name: "lbh-test/test-mvp"
+          release-tag-name: $CIRCLE_TAG
+          tests-location: "tests"
+          tests-recursive: true
+          requires:
+            - test-orb-locally
           filters:
             branches:
               only: master
