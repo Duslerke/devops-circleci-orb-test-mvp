@@ -14,6 +14,10 @@ workflows:
           acc-token: $CIRCLE_API_KEY
           path-to-orb: "src/"
       - publish:
+            orb-name: "lbh-test/test-mvp"
+            release-tag-name: $CIRCLE_TAG
+            tests-location: "tests"
+            tests-recursive: true
 #           requires:
 #             - test-orb-locally
           filters:
@@ -184,6 +188,21 @@ jobs:
               echo New Orb published
             fi
   publish:
+    description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
+    parameters:
+      orb-name:
+            description: "Name of the orb in the circleci registry: my-namespace-name/my-orb-name"
+            type: string
+      release-tag-name:
+            description: "Here you plug in $CIRCLE_TAG environment variable. It doesn't have to be a tag name it can be any string that contains \
+                         a semantic version number like 0.2.1 (or 4.0.15 and in general major.minor.patch)." #I don't think that $CIRCLE_TAG is default worthy - it might cause confusion as it only works when release is made
+            type: string
+      tests-location:
+            description: "Folder location of BATS test files"
+            type: string
+      tests-recursive:
+            description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
+            type: boolean
     docker:
       - image: circleci/circleci-cli
     steps:
@@ -196,11 +215,11 @@ jobs:
 #             ls
 #             bats ./tests/sample-tests.bats #pls work
       - run-bats-tests:
-          tests-location: "tests"
-          recursive: false
+          tests-location: << parameters.tests-location >>
+          recursive: << parameters.tests-recursive >>
       - get-version-segment:
-          orb-name: "lbh-test/test-mvp"
-          release-tag-name: $CIRCLE_TAG
+          orb-name: << parameters.orb-name >>
+          release-tag-name: << parameters.release-tag-name >>
       - run: 
           name: Promote to prod
           command: |
