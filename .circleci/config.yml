@@ -1,8 +1,18 @@
 version: 2.1
+
+# orbs:
+#   orbs-orb:
+#     commands:
+      
+
 workflows:
   build-deploy:
     jobs:
       - test-orb-locally
+          orb-name: "lbh-test/test-mvp"
+          dev-version: $CIRCLE_BRANCH
+          acc-token: $CIRCLE_API_KEY
+          path-to-orb: "src/"
       - publish:
 #           requires:
 #             - test-orb-locally
@@ -137,6 +147,26 @@ commands:
 
 jobs:
   test-orb-locally:
+    description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
+    parameters:
+      orb-name:
+        description: "The name of the orb that is being developed - it should match how this orb is named in circleci registry. If it \
+                      doesn't have an allocated circleci registry name yet, then it's going to given this name. Name format should follow \
+                      'my-namespace-name/my-orb-name'."
+        type: string
+      dev-version:
+        description: "When publishing development orb, rather than using the regular semantic versioning, the format of: \
+                      'my-namespace-name/my-orb-name@dev:my-distinguishing-string' is used. This variable corresponds to this \
+                      version string that comes after the '@dev:' part. Can be up to 1000 characters."
+        type: string
+      acc-token:
+        description: "The circleci CLI commands that are being run require you to have an access token to your circleci account. \
+                      When this these commands are being run from a container on circleci servers, they have no access to your credentials \
+                      This parameter is where you provide them."
+        type: string
+      path-to-orb:
+        description: "A path to your orb file. Needed so that it could be packed and validated."
+        type: string
     docker:
       - image: circleci/circleci-cli
     steps:
@@ -144,13 +174,13 @@ jobs:
       - run:
           name: Pack and Validate
           command: |
-            circleci config pack src/ > packed.yml
-            circleci orb validate packed.yml --token ${CIRCLE_API_KEY}
-            if circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}; then
+            circleci config pack << parameters.path-to-orb >> > packed.yml
+            circleci orb validate packed.yml --token << parameters.acc-token >>
+            if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
               echo Existing Orb updated
             else
-              circleci orb create lbh-test/${ORB_NAME} --no-prompt --token ${CIRCLE_API_KEY}
-              circleci orb publish packed.yml lbh-test/test-mvp@dev:${CIRCLE_BRANCH} --token ${CIRCLE_API_KEY}
+              circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
+              circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
               echo New Orb published
             fi
   publish:
