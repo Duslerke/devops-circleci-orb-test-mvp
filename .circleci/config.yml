@@ -8,7 +8,7 @@ version: 2.1
 workflows:
   build-deploy:
     jobs:
-      - test-orb-locally
+      - test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
