@@ -6,6 +6,11 @@ commands:
         type: string
     steps:
       - run: echo "<<parameters.some_word>> World"
+  command_snd:
+    #parameters: simple case
+    steps:
+      - run: | #I could just run the script, or...
+          #>> Script1 | my_shells/my_test_script.sh <<#
 jobs:
   my_build:
     docker:
