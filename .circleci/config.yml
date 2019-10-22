@@ -209,17 +209,15 @@ orbs:
                 command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
       executors:
         circleci-cli-image:
-            description: "The circleci-cli Docker image, which includes the CircleCI CLI"
-            parameters:
-               tag:
-                 description: "Specifies the version of docker image"
-                   type: string
-                   default: latest
-            docker:
-              - image: circleci/circleci-cli:<<parameters.tag>>
+          description: "The circleci-cli Docker image, which includes the CircleCI CLI"
+          parameters:
+            tag:
+              description: "Specifies the version of docker image"
+              type: string
+              default: latest
+          docker:
+          - image: circleci/circleci-cli:<<parameters.tag>>
                         
-                  
-
 workflows:
   build-deploy:
     jobs:
