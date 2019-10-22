@@ -231,8 +231,8 @@ workflows:
           release-tag-name: $CIRCLE_TAG
           tests-location: "tests"
           tests-recursive: true
-          requires:
-            - test-orb-locally
+#           requires:
+#             - orbs-orb/test-orb-locally
           filters:
             branches:
               only: master
