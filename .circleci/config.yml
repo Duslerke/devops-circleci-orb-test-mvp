@@ -31,7 +31,9 @@ orbs:
             - run:
                 name: Pack and Validate
                 command: |
+                  echo "$(cat ./src/orb.yml)" #<--- remove
                   circleci config pack << parameters.path-to-orb >> > packed.yml
+                  echo "$(cat ./packed.yml)"
                   circleci orb validate packed.yml --token << parameters.acc-token >>
                   if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
