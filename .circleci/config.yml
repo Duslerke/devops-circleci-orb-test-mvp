@@ -207,6 +207,29 @@ orbs:
             - run:
                 name: Executing BATS Tests
                 command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
+        code-move-magic:
+          #description: "Not dealing with this now..."
+          steps:
+            - run:
+                name: Code Move!!!
+                command: |
+                  INSERT_MARKER=$(grep -oP "#>>.+\|.+<<#" ./src/orb.yml)
+                  echo "${INSERT_MARKER}"
+                  IM_INDENTATION=$(grep -oP '^\s+(?=#>>)' ./src/orb.yml)
+                  echo "${IM_INDENTATION}after-indent"
+                  IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
+                  IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=<<#)')
+                  echo $IM_NAME
+                  echo $IM_PATH
+                  echo "Here:"
+                  INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
+                  MEGA=$(echo "${INDENTED_CODE}" | sed -n "/#>>$IM_NAME<<#/,/#>>$IM_NAME<<#/p" | head -n-1 | tail -n+2)
+                  echo "${MEGA}"
+                  MOOGA=$(echo "${MEGA}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+                  echo "${MOOGA}"
+                  sed -i -E "s~#>>Script1\|./folder1/codeToInsert.sh<<#~$MOOGA~g" ./src/orb.yml
+                  echo "Pls work"
+
       executors:
         circleci-cli-image:
           description: "The circleci-cli Docker image, which includes the CircleCI CLI"
