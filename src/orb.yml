@@ -10,8 +10,11 @@ commands:
     steps:
       - run: |
           echo "Multi"
+          
+          
           echo "Line"
           echo "Test"
+          
   command_snd:
     #parameters: simple case
     steps:
