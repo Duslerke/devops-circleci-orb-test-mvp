@@ -32,7 +32,11 @@ orbs:
                 name: Pack and Validate
                 command: |
                   echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "packing orb"
+                  
                   circleci config pack << parameters.path-to-orb >> > packed.yml
+                  echo "orb packed"
+                  
                   sed -i 's/\\n/\
                   /g' ./packed.yml
                   echo "$(cat ./packed.yml)"
