@@ -34,7 +34,7 @@ orbs:
                   #echo "$(cat ./src/orb.yml)" #<--- remove
                   #echo "packing orb"
                   #
-                  #circleci config pack << parameters.path-to-orb >> > packed.yml #leave this out for now//orbpack
+                  #circleci config pack << parameters.path-to-orb >>
                   #echo "orb packed"
                   #
                   #sed -i 's/\\n/\
