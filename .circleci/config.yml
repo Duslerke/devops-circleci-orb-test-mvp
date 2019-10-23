@@ -238,7 +238,7 @@ orbs:
                   echo "${MEGA}"
                   MOOGA=$(echo "${MEGA}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
                   sed -i -E "s~#>>Script1\|./shell/my_test_script.sh\<<#~$MOOGA~g" ./src/orb.yml
-  `               sed -i 's/\\n/\n/g' ./src/orb.yml
+                  sed -i 's/\\n/\n/g' ./src/orb.yml
                   echo "Pls work"
                   echo "$(cat ./src/orb.yml)"
 
