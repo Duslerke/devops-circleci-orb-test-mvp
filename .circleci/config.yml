@@ -85,6 +85,10 @@ orbs:
 
                   echo $CURRENT_VERSION
                   echo $NEXT_VERSION
+                  echo "sed tests"
+                  sed --version
+                  
+                  
       commands:
         get-version-number:
           steps:
