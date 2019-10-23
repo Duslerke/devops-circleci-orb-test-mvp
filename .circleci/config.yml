@@ -39,6 +39,11 @@ orbs:
                     circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
+            - run:
+                name: Sed TEST!!!!
+                command: |
+                  echo "sed tests"
+                  sed --version
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -85,9 +90,6 @@ orbs:
 
                   echo $CURRENT_VERSION
                   echo $NEXT_VERSION
-                  echo "sed tests"
-                  sed --version
-                  
                   
       commands:
         get-version-number:
