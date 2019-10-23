@@ -10,7 +10,7 @@ commands:
     #parameters: simple case
     steps:
       - run: | #I could just run the script, or...
-          #>> Script1 | my_shells/my_test_script.sh <<#
+          #put marker here
 jobs:
   my_build:
     docker:
