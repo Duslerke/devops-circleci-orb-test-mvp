@@ -31,21 +31,32 @@ orbs:
             - run:
                 name: Pack and Validate
                 command: |
-                  echo "$(cat ./src/orb.yml)" #<--- remove
-                  echo "packing orb"
-                  
+                  #echo "$(cat ./src/orb.yml)" #<--- remove
+                  #echo "packing orb"
+                  #
                   #circleci config pack << parameters.path-to-orb >> > packed.yml #leave this out for now//orbpack
-                  echo "orb packed"
+                  #echo "orb packed"
+                  #
+                  #sed -i 's/\\n/\
+                  #/g' ./packed.yml
+                  #echo "$(cat ./packed.yml)"
+                  #circleci orb validate packed.yml --token << parameters.acc-token >>
+                  #if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  #  echo Existing Orb updated
+                  #else
+                  #  circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
+                  #  circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                  #  echo New Orb published
+                  #fi
                   
-                  sed -i 's/\\n/\
-                  /g' ./src/orb.yml       #./packed.yml
-                  echo "$(cat ./packed.yml)"
-                  circleci orb validate packed.yml --token << parameters.acc-token >>
-                  if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  echo "$(cat ./src/orb.yml)" #<--- remove
+
+                  circleci orb validate ./src/orb.yml --token << parameters.acc-token >>
+                  if circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
             - run:
