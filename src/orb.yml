@@ -13,13 +13,11 @@ commands:
           echo "Whatever"
           #>>Script1|./shell/my_test_script.sh<<#
    cefawefd:
-    #parameters: simple case
     steps:
-      - run: | #I could just run the script, or...
+      - run: |
           echo "Multi"
           echo "Line"
           echo "Test"
-
 jobs:
   my_build:
     docker:
