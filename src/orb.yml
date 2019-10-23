@@ -12,7 +12,7 @@ commands:
       - run: | #I could just run the script, or...
           echo "Whatever"
           #>>Script1|./shell/my_test_script.sh<<#
-   cefawefd:
+  some_command:
     steps:
       - run: |
           echo "Multi"
