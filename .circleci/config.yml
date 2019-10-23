@@ -236,6 +236,7 @@ orbs:
                   echo "${MOOGA}"
                   sed -i -E "s~#>>Script1\|./folder1/codeToInsert.sh\<<#~$MOOGA~g" ./src/orb.yml
                   echo "Pls work"
+                  echo "$(cat ./src/orb.yml)"
 
       executors:
         circleci-cli-image:
