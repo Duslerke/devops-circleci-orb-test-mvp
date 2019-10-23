@@ -27,6 +27,7 @@ orbs:
           executor: circleci-cli-image
           steps:
             - checkout
+            - code-move-magic
             - run:
                 name: Pack and Validate
                 command: |
