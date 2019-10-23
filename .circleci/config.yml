@@ -45,6 +45,10 @@ orbs:
                 command: |
                   echo "sed tests"
                   sed --version
+            - run:
+                name: Promote my test
+                command: |
+                  circleci orb publish promote lbh-test/test-mvp@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
