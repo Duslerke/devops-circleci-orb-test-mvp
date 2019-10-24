@@ -265,7 +265,8 @@ orbs:
                   MEGA=$(echo "${INDENTED_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
                   echo "${MEGA}"
                   MOOGA=$(echo "${MEGA}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
-                  sed -i -E "s~#>>Script1\|./shell/my_test_script.sh\<<#~$MOOGA~g" ./src/orb.yml
+                  ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
+                  sed -i -E "s~$ESCAPED_IM~$MOOGA~g" ./src/orb.yml
                   sed -i 's/\\n/\
                   /g' ./src/orb.yml
                   echo "Pls work"
