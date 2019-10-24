@@ -256,12 +256,14 @@ orbs:
                   echo "${INSERT_MARKER}"
                   IM_INDENTATION=$(grep -oP '^\s+(?=#>>)' ./src/orb.yml)
                   echo "${IM_INDENTATION}after-indent"
+                  ESCAPED_IND=$(echo "${IM_INDENTATION}" | sed -E 's~(.)~\\\1~g')
+                  echo "${ESCAPED_IND}"
                   IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
                   IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=\<<#)')
                   echo $IM_NAME
                   echo $IM_PATH
                   echo "Here:"
-                  INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
+                  INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${ESCAPED_IND}/g")
                   MEGA=$(echo "${INDENTED_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
                   echo "${MEGA}"
                   RMV_FST_INDENT=$(echo "${MEGA}" | sed -E "0,/${ESCAPED_IND}/s///")
