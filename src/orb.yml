@@ -22,7 +22,7 @@ commands:
     #parameters: simple case
     steps:
       - run: |
-          echo "Not newline"
+
           #>>Script1|./shell/my_test_script.sh<<#
 jobs:
   my_build:
