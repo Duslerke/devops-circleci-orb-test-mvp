@@ -264,7 +264,9 @@ orbs:
                   INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
                   MEGA=$(echo "${INDENTED_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
                   echo "${MEGA}"
-                  MOOGA=$(echo "${MEGA}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+                  RMV_FST_INDENT=$(echo "${MEGA}" | sed -E "0,/${ESCAPED_IND}/s///")
+                  echo "${RMV_FST_INDENT}"
+                  MOOGA=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
                   ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
                   sed -i -E "s~$ESCAPED_IM~$MOOGA~g" ./src/orb.yml
                   sed -i 's/\\n/\
