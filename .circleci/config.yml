@@ -266,10 +266,10 @@ orbs:
                       local INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
                       echo "${INDENTED_CODE}"
                       echo "grep"
-                      echo "${INDENTED_CODE}" | grep -E '>>'
+                      echo "${INDENTED_CODE}" | grep -oE '<\<'
                       echo "grep end"
                       echo "grep2"
-                      echo "${INDENTED_CODE}" | grep -E "<\<"
+                      echo "${INDENTED_CODE}" | grep -oE "<\<"
                       echo "grep end2"
                       local OPERATOR_ESCAPED_CODE=$(echo "${INDENTED_CODE}" | sed -E 's/<\</\\<\</g') #Well that's weird
                       echo "${OPERATOR_ESCAPED_CODE}"
