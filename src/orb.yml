@@ -9,20 +9,17 @@ commands:
   some_command:
     steps:
       - run: |
+          #>>Echo7|./shell/my_param_script.sh<<#
       
-      
-      
-          echo "Multi"
-          
-          
-          echo "Line"
-          echo "Test"
+          echo "my_param_script"
           
   command_snd:
     #parameters: simple case
     steps:
       - run: |
           #>>Script1|./shell/my_test_script.sh<<#
+          
+          echo "my_test_script"
 jobs:
   my_build:
     docker:
