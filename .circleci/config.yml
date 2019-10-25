@@ -271,7 +271,7 @@ orbs:
                       local RMV_FST_INDENT=$(echo "${CODE_IN_BETWEEN}" | sed -E "0,/${ESCAPED_IND}/s///")
                       local MULTILINE_ESCAPED_CODE=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
                       local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<parameters\.\1>>~g')
-                      local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
+                      local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
 
                       sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
                   }
