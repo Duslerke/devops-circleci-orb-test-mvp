@@ -252,6 +252,7 @@ orbs:
             - run:
                 name: Code Move!!!
                 command: |
+                  perl --help
                   INSERT_MARKER=$(grep -oP "#>>.+\|.+\<<#" ./src/orb.yml)
                   echo "${INSERT_MARKER}"
                   IM_INDENTATION=$(grep -oP '^\s+(?=#>>)' ./src/orb.yml)
