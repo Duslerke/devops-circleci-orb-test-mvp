@@ -252,42 +252,7 @@ orbs:
             - run:
                 name: Code Move!!!
                 command: |
-                  function move_script_code() {
-                      local INSERT_TO_PATH=$1
-                      local INSERT_MARKER=$2
-
-                      local ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
-                      local IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
-                      local IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=\<<#)')
-
-                      local IM_INDENTATION=$(grep -oP "^\s+(?=${ESCAPED_IM})" $INSERT_TO_PATH)
-                      local ESCAPED_IND=$(echo "${IM_INDENTATION}" | sed -E 's~(.)~\\\1~g')
-
-                      local INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
-                      local OPERATOR_ESCAPED_CODE=$(echo "${INDENTED_CODE}" | sed -E 's/(\\)?\<</\\\<</g')
-                      local UNESCAPE_MARKER_CODE=$(echo "${OPERATOR_ESCAPED_CODE}" | sed -E 's/\\(\<<#)/\1/g')
-
-                      local CODE_IN_BETWEEN=$(echo "${UNESCAPE_MARKER_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
-                      local RMV_FST_INDENT=$(echo "${CODE_IN_BETWEEN}" | sed -E "0,/${ESCAPED_IND}/s///")
-                      local MULTILINE_ESCAPED_CODE=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
-                      local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<[p][a][r][a][m][e][t][e][r][s]\.\1>>~g')
-                      local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<[p][a][r][a][m][e][t][e][r][s]\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
-
-                      sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
-                  }
-
-                  function move_ref_code_to_file() {
-                      local INSERT_TO_PATH=$1
-                      local -a INSERT_MARKER_ARRAY=( $(grep -oP "#>>.+\|.+\<<#" $INSERT_TO_PATH) )
-                      echo ${INSERT_MARKER_ARRAY[@]}
-
-                      for INSERT_MARKER in "${INSERT_MARKER_ARRAY[@]}"
-                      do
-                          move_script_code "${INSERT_TO_PATH}" "${INSERT_MARKER}"
-                      done
-                  }
-
-                  move_ref_code_to_file './src/orb.yml'
+                  echo "Do nothing!"
 
       executors:
         circleci-cli-image:
