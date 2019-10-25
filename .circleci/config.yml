@@ -292,6 +292,8 @@ orbs:
                   }
 
                   move_ref_code_to_file './src/orb.yml'
+                  
+                  echo "$(cat ./src/orb.yml)" #<--- remove
 
       executors:
         circleci-cli-image:
