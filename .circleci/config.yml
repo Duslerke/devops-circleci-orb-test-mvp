@@ -279,6 +279,7 @@ orbs:
                   function move_ref_code_to_file() {
                       local INSERT_TO_PATH=$1
                       local -a INSERT_MARKER_ARRAY=( $(grep -oP "#>>.+\|.+\<<#" $INSERT_TO_PATH) )
+                      echo ${INSERT_MARKER_ARRAY[@]}
 
                       for INSERT_MARKER in "${INSERT_MARKER_ARRAY[@]}"
                       do
