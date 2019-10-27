@@ -21,7 +21,7 @@ orbs:
                             When this these commands are being run from a container on circleci servers, they have no access to your credentials \
                             This parameter is where you provide them."
               type: string
-            path-to-orb:
+            path-to-orb-dir:
               description: "A path to your orb file. Needed so that it could be packed and validated."
               type: string
             packed-orb-path:
@@ -34,42 +34,11 @@ orbs:
             - run:
                 name: Pack the orb
                 command: |
-                  #echo "$(cat ./src/orb.yml)" #<--- remove
-                  #echo "packing orb"
-                  #
-                  #circleci config pack << parameters.path-to-orb >>
-                  #echo "orb packed"
-                  #
-                  #sed -i 's/\\n/\
-                  #/g' ./packed.yml
-                  #echo "$(cat ./packed.yml)"
-                  #circleci orb validate packed.yml --token << parameters.acc-token >>
-                  #if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
-                  #  echo Existing Orb updated
-                  #else
-                  #  circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                  #  circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
-                  #  echo New Orb published
-                  #fi
-                  
-                  echo "initial: "
-                  echo "$(cat ./src/@orb.yml)" #<--- remove
+                  echo "Initial orb file: "
+                  echo "$(cat <<parameters.path-to-orb-dir>>)"
                   
                   echo "packing start"
-                  circleci config pack ./src > << parameters.packed-orb-path >>    #<#< para#/orb.yml#meters.path-to-orb >> > packed.yml
-                  echo "packing end"
-                  
-                  echo "view packed--------------: "
-                  echo "$(cat ./src/@orb.yml)" #<--- remove
-                  echo "zzz"
-                  echo "$(cat << parameters.packed-orb-path >>)" #<--- remove
-                  echo "packed end"
-                  
-                  echo "curr dir:-------------"
-                  ls
-                  
-                  echo "orb dir: -------"
-                  ls ./src
+                  circleci config pack ./src > << parameters.packed-orb-path >>
             - code-move-magic:
                 packed-orb-path: << parameters.packed-orb-path >>
             - run:
@@ -116,23 +85,12 @@ orbs:
             - run: 
                 name: Promote to prod
                 command: |
-                  echo "New command"
                   echo "Promoting happens here. No point to add right now."
-                  pwd
-                  ls
-                  echo $(cat my_envvar_dir/vsegment-envvar)
-                  env
-                  echo "End"
                   echo $SEGMENT
-
                   echo $CURRENT_VERSION
                   echo $NEXT_VERSION
                   
       commands:
-        get-version-number:
-          steps:
-          - run: |
-              circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
         install-bats:
           description: Installs Bash Automated Testing System
           steps:
@@ -141,8 +99,6 @@ orbs:
                 command: |
                   cd /tmp && git clone https://github.com/bats-core/bats-core.git && cd bats-core
                   sudo ./install.sh /usr/local
-                  pwd
-                  ls -a
                   bats -v
         get-version-segment:
           description: "Extracts version numbers from the Release tag name and most recent orb version information.\
@@ -229,10 +185,8 @@ orbs:
                   #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
 
                   mkdir -p my_envvar_dir
-
                   #hardcode temp
                   echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
-
                   echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
         run-bats-tests:
           description: "Runs all BATS tests (.bats ext) in a specified directory, and its subdirectories if recursive flag is set to 'true'."
@@ -302,7 +256,8 @@ orbs:
 
                   move_ref_code_to_file << parameters.packed-orb-path >>
                   
-                  echo "$(cat << parameters.packed-orb-path >>)" #<--- remove
+                  echo "Result: "
+                  echo "$(cat << parameters.packed-orb-path >>)"
 
       executors:
         circleci-cli-image:
@@ -322,7 +277,7 @@ workflows:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
-          path-to-orb: "src/"
+          path-to-orb-dir: "./src"
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
