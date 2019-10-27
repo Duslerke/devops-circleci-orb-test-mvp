@@ -56,23 +56,18 @@ orbs:
                   circleci config pack ./src     #<#< para#/orb.yml#meters.path-to-orb >> > packed.yml
                   echo "packing end"
                   
-                  echo "view packed: "
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "view packed--------------: "
+                  echo "$(cat ./src/@orb.yml)" #<--- remove
                   echo "packed end"
 
-                  circleci orb validate ./src/orb.yml --token << parameters.acc-token >>
-                  if circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  circleci orb validate ./src/@orb.yml --token << parameters.acc-token >>
+                  if circleci orb publish ./src/@orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish ./src/@orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
-            - run:
-                name: Sed TEST!!!!
-                command: |
-                  echo "sed tests"
-                  sed --version
             - run:
                 name: Promote my test
                 command: |
@@ -97,12 +92,6 @@ orbs:
           steps:
             - checkout
             - install-bats
-      #       - run:
-      #           name: Check if current working dir is reset, run bats tests
-      #           command: |
-      #             pwd #looks like we're in the root of github
-      #             ls
-      #             bats ./tests/sample-tests.bats #pls work
             - run-bats-tests:
                 tests-location: << parameters.tests-location >>
                 recursive: << parameters.tests-recursive >>
