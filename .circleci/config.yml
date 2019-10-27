@@ -34,7 +34,7 @@ orbs:
                   #echo "$(cat ./src/orb.yml)" #<--- remove
                   #echo "packing orb"
                   #
-                  #circleci config pack << parameters.path-to-orb >>
+                  #circleci config pack << parameters.path-to-orb >> > packed.yml
                   #echo "orb packed"
                   #
                   #sed -i 's/\\n/\
@@ -53,7 +53,7 @@ orbs:
                   echo "$(cat ./src/orb.yml)" #<--- remove
                   
                   echo "packing start"
-                  circleci config pack << parameters.path-to-orb >> > packed.yml
+                  circleci config pack << parameters.path-to-orb >>
                   echo "packing end"
                   
                   echo "view packed: "
@@ -80,7 +80,9 @@ orbs:
                   circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
                   echo "Full: "
                   circleci orb info lbh-test/test-mvp@volatile
-                  echo "and non-existing one: "
+                  echo "and non-existing prod one: "
+                  #publish
+                  circleci orb create lbh-test/testdd-mvp@volatile --no-prompt --token $CIRCLE_API_KEY
                   circleci orb info lbh-test/testdd-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
                   echo full info:
                   circleci orb info lbh-test/testdd-mvp@volatile
