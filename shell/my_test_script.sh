@@ -4,7 +4,8 @@
 
 function spamTheScreen() {
     for i in $(seq "$1" "$2"); do
-        a[i]=$i
+        # shellcheck disable=SC2034
+        a[i]=$i #if you think that it's false positive
         echo "current number is: $i"
     done
 }
