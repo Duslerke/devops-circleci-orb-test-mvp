@@ -1,0 +1,5 @@
+steps:
+  - run: |
+      #>>Script1|./shell/my_test_script.sh<<#
+      
+      echo "my_test_script"

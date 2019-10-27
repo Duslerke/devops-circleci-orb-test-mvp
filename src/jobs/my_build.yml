@@ -1,0 +1,5 @@
+executor: some-ruby-machine
+steps:
+  - checkout
+  - my_command:
+      some_word: "Hello from GitHub"

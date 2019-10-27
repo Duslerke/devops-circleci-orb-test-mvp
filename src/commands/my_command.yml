@@ -1,0 +1,5 @@
+parameters:
+  some_word:
+    type: string
+steps:
+  - run: echo "<<parameters.some_word>> World"
