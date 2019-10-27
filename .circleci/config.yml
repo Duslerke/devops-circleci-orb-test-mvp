@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
     jobs:
       test-orb-locally:
@@ -272,7 +273,7 @@ orbs:
             default: latest
         docker:
         - image: circleci/circleci-cli:<<parameters.tag>>
-  shellcheck: circleci/shellcheck@1.3.15
+
 
 workflows:
   shellcheck:
@@ -285,10 +286,12 @@ workflows:
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
           path-to-orb-dir: "./src"
+          #packed-orb-path: has a default
+          tests-location: "./tests"
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
-          tests-location: "tests"
+          tests-location: "./tests"
           tests-recursive: true
 #           requires:
 #             - orbs-orb/test-orb-locally
@@ -297,9 +300,3 @@ workflows:
               only: master
             tags:
               only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
-
-
-
-
-            
-            
