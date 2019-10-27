@@ -34,7 +34,7 @@ orbs:
                   #echo "$(cat ./src/orb.yml)" #<--- remove
                   #echo "packing orb"
                   #
-                  #circleci config pack << parameters.path-to-orb >>
+                  #circleci config pack << parameters.path-to-orb >> > packed.yml
                   #echo "orb packed"
                   #
                   #sed -i 's/\\n/\
@@ -53,7 +53,7 @@ orbs:
                   echo "$(cat ./src/orb.yml)" #<--- remove
                   
                   echo "packing start"
-                  circleci config pack << parameters.path-to-orb >> > packed.yml
+                  circleci config pack << parameters.path-to-orb >>
                   echo "packing end"
                   
                   echo "view packed: "
@@ -76,7 +76,20 @@ orbs:
             - run:
                 name: Promote my test
                 command: |
-                  circleci orb publish promote lbh-test/test-mvp@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
+                  #echo "Let's try an existing one: "
+                  #circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
+                  #echo "Full: "
+                  #circleci orb info lbh-test/test-mvp@volatile
+                  #echo "and non-existing prod one: "
+                  #publish
+                  #circleci orb info lbh-test/something@dev:whatever --token $CIRCLE_API_KEY
+                  #circleci orb create lbh-test/something --no-prompt --token $CIRCLE_API_KEY
+                  #circleci orb publish ./src/orb.yml lbh-test/something@dev:whatever --token $CIRCLE_API_KEY
+                  #circleci orb info lbh-test/something@volatile | grep -oP "(\d+\.)+\d+\b"
+                  echo full info:
+                  
+                  circleci orb publish promote lbh-test/something@dev:whatever patch --token ${CIRCLE_API_KEY} #this is temp
+                  circleci orb info lbh-test/something@volatile | grep -oP '(\d+\.)+\d+\b' || echo "0.0.0"
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -149,7 +162,8 @@ orbs:
             orb-name:
               description: "The name of the orb, who's current version will be checked. Should be in format: \
                             'my-namespace-name/my-orb-name'. No need to provide a version name as the command grabs \
-                            the latest one available ('@volatile')."
+                            the latest one available ('@volatile'). If it was not released yet, then it returns version\
+                            of 0.0.0"
               type: string
               #default: it could be $githubName/$repoName, however I feel that would cause confusion upon the first publish. It's for the better to set this explicitly.
             release-tag-name:
@@ -162,7 +176,7 @@ orbs:
             - run:
                 name: Extract and Export version numbers
                 command: |
-                  echo "export CURRENT_VERSION=$(circleci orb info << parameters.orb-name >>@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
+                  echo "export CURRENT_VERSION=$(circleci orb info << parameters.orb-name >>@volatile | grep -oP '(\d+\.)+\d+\b' || echo "0.0.0")" >> $BASH_ENV
                   echo "export NEXT_VERSION=$(echo << parameters.release-tag-name >> | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
             - run:
                 name: Get version segment name AND check Semantic versioning
