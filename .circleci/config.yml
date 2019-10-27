@@ -87,7 +87,7 @@ orbs:
                   #circleci orb publish ./src/orb.yml lbh-test/something@dev:whatever --token $CIRCLE_API_KEY
                   #circleci orb info lbh-test/something@volatile | grep -oP "(\d+\.)+\d+\b"
                   echo full info:
-                  circleci orb info lbh-test/something@volatile || echo "0.0.0"
+                  circleci orb info lbh-test/something@volatile | grep -oP '(\d+\.)+\d+\b' || echo "0.0.0"
                   #circleci orb publish promote lbh-test/something@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
