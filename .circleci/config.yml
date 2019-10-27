@@ -3,280 +3,282 @@ version: 2.1
 orbs:
   shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
-      jobs:
-        test-orb-locally:
-          description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
-          parameters:
-            orb-name:
-              description: "The name of the orb that is being developed - it should match how this orb is named in circleci registry. If it \
-                            doesn't have an allocated circleci registry name yet, then it's going to given this name. Name format should follow \
-                            'my-namespace-name/my-orb-name'."
-              type: string
-            dev-version:
-              description: "When publishing development orb, rather than using the regular semantic versioning, the format of: \
-                            'my-namespace-name/my-orb-name@dev:my-distinguishing-string' is used. This variable corresponds to this \
-                            version string that comes after the '@dev:' part. Can be up to 1000 characters."
-              type: string
-            acc-token:
-              description: "The circleci CLI commands that are being run require you to have an access token to your circleci account. \
-                            When this these commands are being run from a container on circleci servers, they have no access to your credentials \
-                            This parameter is where you provide them."
-              type: string
-            path-to-orb-dir:
-              description: "A path to your orb file. Needed so that it could be packed and validated."
-              type: string
-            packed-orb-path:
-              description: "Path to where the packed orb's yaml will be stored to."
-              type: string
-              default: "./packed.yml" #in the root
-            tests-location:
-              description: "Folder location of BATS test files"
-              type: string
-          executor: circleci-cli-image
-          steps:
-            - checkout
-            - run:
-                name: Pack the orb
-                command: |
-                  echo "Initial orb file: "
-                  echo "$(cat <<parameters.path-to-orb-dir>>)"
-                  
-                  echo "packing start"
-                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
-            - code-move-magic:
-                packed-orb-path: << parameters.packed-orb-path >>
-            - run:
-                name: Validate and publish Dev version
-                command: |
-                  circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
-                  if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
-                    echo Existing Orb updated
-                  else
-                    circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
-                    echo New Orb published
-                  fi
-            - run:
-                name: Promote my test
-                command: |
-                  circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
-        publish:
-          description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
-          parameters:
-            orb-name:
-                  description: "Name of the orb in the circleci registry: my-namespace-name/my-orb-name"
-                  type: string
-            release-tag-name:
-                  description: "Here you plug in $CIRCLE_TAG environment variable. It doesn't have to be a tag name it can be any string that contains \
-                               a semantic version number like 0.2.1 (or 4.0.15 and in general major.minor.patch)." #I don't think that $CIRCLE_TAG is default worthy - it might cause confusion as it only works when release is made
-                  type: string
-            tests-location:
-                  description: "Folder location of BATS test files"
-                  type: string
-            tests-recursive:
-                  description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
-                  type: boolean
-          executor: circleci-cli-image
-          steps:
-            - checkout
-            - install-bats
-            - run-bats-tests:
-                tests-location: << parameters.tests-location >>
-                recursive: << parameters.tests-recursive >>
-            - get-version-segment:
-                orb-name: << parameters.orb-name >>
-                release-tag-name: << parameters.release-tag-name >>
-            - run: 
-                name: Promote to prod
-                command: |
-                  echo "Promoting happens here. No point to add right now."
-                  echo $SEGMENT
-                  echo $CURRENT_VERSION
-                  echo $NEXT_VERSION
-                  
-      commands:
-        install-bats:
-          description: Installs Bash Automated Testing System
-          steps:
-            - run:
-                name: Install BATS
-                command: |
-                  cd /tmp && git clone https://github.com/bats-core/bats-core.git && cd bats-core
-                  sudo ./install.sh /usr/local
-                  bats -v
-        get-version-segment:
-          description: "Extracts version numbers from the Release tag name and most recent orb version information.\
-                        Compares the two and checks if they comply with semantic versioning standards. Based on which\
-                        number has changed (first, middle, last), it gives a corresponding segment name as an output \
-                        (major, minor, patch). The output is exported as environment variable '$SEGMENT'."
-          parameters:
-            orb-name:
-              description: "The name of the orb, who's current version will be checked. Should be in format: \
-                            'my-namespace-name/my-orb-name'. No need to provide a version name as the command grabs \
-                            the latest one available ('@volatile')."
-              type: string
-              #default: it could be $githubName/$repoName, however I feel that would cause confusion upon the first publish. It's for the better to set this explicitly.
-            release-tag-name:
-              description: "Takes in a one line string, extracts the version number from it. It will be used to compare to the \
-                            most recent existing orb's version number (2.4.17). Here you can pass a Release Tag environment \
-                            variable '$CIRCLE_TAG'."
-              type: string
-              #default: there should be no default - this is the decider variable that makes a distinction between major, minor and patch releases.
-          steps:
-            - run:
-                name: Extract and Export version numbers
-                command: |
-                  echo "export CURRENT_VERSION=$(circleci orb info << parameters.orb-name >>@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
-                  echo "export NEXT_VERSION=$(echo << parameters.release-tag-name >> | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
-            - run:
-                name: Get version segment name AND check Semantic versioning
-                command: |
-                  function semanticChecker() {
-                      local -a posibilities=("major" "minor" "patch")
-                      local -n curr=$1 #pass arrays through reference
-                      local -n next=$2
-                      for (( i=0; i<=3; i++ ))
-                      do
-                          if [ $i -eq 3 ]; then
-                              echo "ERROR: orb version '"${next[0]}"."${next[1]}"."${next[2]}"' already exists."
-                              exit 1
-                          elif [ ${next[$i]} -gt ${curr[$i]} ]; then
-                              if [ $((${next[$i]} - ${curr[$i]})) -eq 1 ]; then
-                                  local allLeadingZeroes=true
+    jobs:
+      test-orb-locally:
+        description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
+        parameters:
+          orb-name:
+            description: "The name of the orb that is being developed - it should match how this orb is named in circleci registry. If it \
+                          doesn't have an allocated circleci registry name yet, then it's going to given this name. Name format should follow \
+                          'my-namespace-name/my-orb-name'."
+            type: string
+          dev-version:
+            description: "When publishing development orb, rather than using the regular semantic versioning, the format of: \
+                          'my-namespace-name/my-orb-name@dev:my-distinguishing-string' is used. This variable corresponds to this \
+                          version string that comes after the '@dev:' part. Can be up to 1000 characters."
+            type: string
+          acc-token:
+            description: "The circleci CLI commands that are being run require you to have an access token to your circleci account. \
+                          When this these commands are being run from a container on circleci servers, they have no access to your credentials \
+                          This parameter is where you provide them."
+            type: string
+          path-to-orb-dir:
+            description: "A path to your orb file. Needed so that it could be packed and validated."
+            type: string
+          packed-orb-path:
+            description: "Path to where the packed orb's yaml will be stored to."
+            type: string
+            default: "./packed.yml" #in the root
+          tests-location:
+            description: "Folder location of BATS test files"
+            type: string
+        executor: circleci-cli-image
+        steps:
+          - checkout
+          - run:
+              name: Pack the orb
+              command: |
+                echo "Initial orb file: "
+                echo "$(cat <<parameters.path-to-orb-dir>>)"
 
-                                  for (( j=$(( $i+1 )); j<3; j++ ))
-                                  do
-                                      if [ ${next[$j]} -eq 0 ]; then
-                                          continue
-                                      else
-                                          allLeadingZeroes=false
-                                          break
-                                      fi
-                                  done
+                echo "packing start"
+                circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
+          - code-move-magic:
+              packed-orb-path: << parameters.packed-orb-path >>
+          - run:
+              name: Validate and publish Dev version
+              command: |
+                circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
+                if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  echo Existing Orb updated
+                else
+                  circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
+                  circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                  echo New Orb published
+                fi
+          - run:
+              name: Promote my test
+              command: |
+                circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
+      publish:
+        description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
+        parameters:
+          orb-name:
+                description: "Name of the orb in the circleci registry: my-namespace-name/my-orb-name"
+                type: string
+          release-tag-name:
+                description: "Here you plug in $CIRCLE_TAG environment variable. It doesn't have to be a tag name it can be any string that contains \
+                             a semantic version number like 0.2.1 (or 4.0.15 and in general major.minor.patch)." #I don't think that $CIRCLE_TAG is default worthy - it might cause confusion as it only works when release is made
+                type: string
+          tests-location:
+                description: "Folder location of BATS test files"
+                type: string
+          tests-recursive:
+                description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
+                type: boolean
+        executor: circleci-cli-image
+        steps:
+          - checkout
+          - install-bats
+          - run-bats-tests:
+              tests-location: << parameters.tests-location >>
+              recursive: << parameters.tests-recursive >>
+          - get-version-segment:
+              orb-name: << parameters.orb-name >>
+              release-tag-name: << parameters.release-tag-name >>
+          - run: 
+              name: Promote to prod
+              command: |
+                echo "Promoting happens here. No point to add right now."
+                echo $SEGMENT
+                echo $CURRENT_VERSION
+                echo $NEXT_VERSION
 
-                                  if [ $allLeadingZeroes == true ]; then
-                                      echo "${posibilities[$i]}"
-                                      return 0
-                                  else
-                                      echo "ERROR: Incorrect versioning. Upon '${posibilities[$i]}' increment, the numbers following it should be set to 0."
-                                      exit 1
-                                  fi
+    commands:
+      install-bats:
+        description: Installs Bash Automated Testing System
+        steps:
+          - run:
+              name: Install BATS
+              command: |
+                cd /tmp && git clone https://github.com/bats-core/bats-core.git && cd bats-core
+                sudo ./install.sh /usr/local
+                bats -v
+      get-version-segment:
+        description: "Extracts version numbers from the Release tag name and most recent orb version information.\
+                      Compares the two and checks if they comply with semantic versioning standards. Based on which\
+                      number has changed (first, middle, last), it gives a corresponding segment name as an output \
+                      (major, minor, patch). The output is exported as environment variable '$SEGMENT'."
+        parameters:
+          orb-name:
+            description: "The name of the orb, who's current version will be checked. Should be in format: \
+                          'my-namespace-name/my-orb-name'. No need to provide a version name as the command grabs \
+                          the latest one available ('@volatile')."
+            type: string
+            #default: it could be $githubName/$repoName, however I feel that would cause confusion upon the first publish. It's for the better to set this explicitly.
+          release-tag-name:
+            description: "Takes in a one line string, extracts the version number from it. It will be used to compare to the \
+                          most recent existing orb's version number (2.4.17). Here you can pass a Release Tag environment \
+                          variable '$CIRCLE_TAG'."
+            type: string
+            #default: there should be no default - this is the decider variable that makes a distinction between major, minor and patch releases.
+        steps:
+          - run:
+              name: Extract and Export version numbers
+              command: |
+                echo "export CURRENT_VERSION=$(circleci orb info << parameters.orb-name >>@volatile | grep -oP '(\d+\.)+\d+\b')" >> $BASH_ENV
+                echo "export NEXT_VERSION=$(echo << parameters.release-tag-name >> | grep -oP '(\d+\.)+\d+')" >> $BASH_ENV
+          - run:
+              name: Get version segment name AND check Semantic versioning
+              command: |
+                function semanticChecker() {
+                    local -a posibilities=("major" "minor" "patch")
+                    local -n curr=$1 #pass arrays through reference
+                    local -n next=$2
+                    for (( i=0; i<=3; i++ ))
+                    do
+                        if [ $i -eq 3 ]; then
+                            echo "ERROR: orb version '"${next[0]}"."${next[1]}"."${next[2]}"' already exists."
+                            exit 1
+                        elif [ ${next[$i]} -gt ${curr[$i]} ]; then
+                            if [ $((${next[$i]} - ${curr[$i]})) -eq 1 ]; then
+                                local allLeadingZeroes=true
 
-                              else
-                                  echo "ERROR: Incorrect versioning. Increment of '${posibilities[$i]}' is larger than 1, should be equal to 1."
-                                  exit 1
-                              fi
-                          elif [ ${next[$i]} -eq ${curr[$i]} ]; then
-                              continue
-                          else
-                              echo "ERROR: New '${posibilities[$i]}' release version number cannot be lower than the one from the current version."
-                              exit 1
-                          fi
-                      done
-                  }
+                                for (( j=$(( $i+1 )); j<3; j++ ))
+                                do
+                                    if [ ${next[$j]} -eq 0 ]; then
+                                        continue
+                                    else
+                                        allLeadingZeroes=false
+                                        break
+                                    fi
+                                done
 
-                  function getReleaseType() {
-                      local -a currentv=($(echo $1 | tr "." "\n"))
-                      local -a nextv=($(echo $2 | tr "." "\n"))
+                                if [ $allLeadingZeroes == true ]; then
+                                    echo "${posibilities[$i]}"
+                                    return 0
+                                else
+                                    echo "ERROR: Incorrect versioning. Upon '${posibilities[$i]}' increment, the numbers following it should be set to 0."
+                                    exit 1
+                                fi
 
-                      if [ ${#currentv[*]} -eq ${#nextv[*]} ]; then
-                          echo $( semanticChecker currentv nextv )
-                      else
-                          echo "ERROR: Current and New version declaration lengths don't match"
-                          exit 1
-                      fi
-                  }
-                  #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
+                            else
+                                echo "ERROR: Incorrect versioning. Increment of '${posibilities[$i]}' is larger than 1, should be equal to 1."
+                                exit 1
+                            fi
+                        elif [ ${next[$i]} -eq ${curr[$i]} ]; then
+                            continue
+                        else
+                            echo "ERROR: New '${posibilities[$i]}' release version number cannot be lower than the one from the current version."
+                            exit 1
+                        fi
+                    done
+                }
 
-                  mkdir -p my_envvar_dir
-                  #hardcode temp
-                  echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
-                  echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
-        run-bats-tests:
-          description: "Runs all BATS tests (.bats ext) in a specified directory, and its subdirectories if recursive flag is set to 'true'."
-          #reason for having this command, is - it's piece of documentation on how to run the bats tests, in case there's a need to go manual.
-          parameters:
-            tests-location:
-              description: "Specifies a path to the .bats tests location relative to the project's root. (Unless workdir was changed)"
-              type: string
-            recursive:
-              description: "If true, then it will run all tests from the specified directory, and its subdirectories. \
-                            If false, then it will run only the tests in the specified directory."
-              type: boolean
-              default: false
-          steps:
-            - run:
-                name: Executing BATS Tests
-                command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
-        code-move-magic:
-          #description: "Not dealing with this now..."
-          parameters:
-            packed-orb-path:
-              description: "Path to where the packed orb's yaml is."
-              type: string
-              default: "./packed.yml" #in the root
-          steps:
-            - run:
-                name: Code Move!!!
-                command: |
-                  function move_script_code() {
-                      local INSERT_TO_PATH=$1
-                      local INSERT_MARKER=$2
+                function getReleaseType() {
+                    local -a currentv=($(echo $1 | tr "." "\n"))
+                    local -a nextv=($(echo $2 | tr "." "\n"))
 
-                      local ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
-                      local IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
-                      local IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=\<<#)')
+                    if [ ${#currentv[*]} -eq ${#nextv[*]} ]; then
+                        echo $( semanticChecker currentv nextv )
+                    else
+                        echo "ERROR: Current and New version declaration lengths don't match"
+                        exit 1
+                    fi
+                }
+                #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
 
-                      local IM_INDENTATION=$(grep -oP "^\s+(?=${ESCAPED_IM})" $INSERT_TO_PATH)
-                      local ESCAPED_IND=$(echo "${IM_INDENTATION}" | sed -E 's~(.)~\\\1~g')
+                mkdir -p my_envvar_dir
+                #hardcode temp
+                echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
+                echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
+      run-bats-tests:
+        description: "Runs all BATS tests (.bats ext) in a specified directory, and its subdirectories if recursive flag is set to 'true'."
+        #reason for having this command, is - it's piece of documentation on how to run the bats tests, in case there's a need to go manual.
+        parameters:
+          tests-location:
+            description: "Specifies a path to the .bats tests location relative to the project's root. (Unless workdir was changed)"
+            type: string
+          recursive:
+            description: "If true, then it will run all tests from the specified directory, and its subdirectories. \
+                          If false, then it will run only the tests in the specified directory."
+            type: boolean
+            default: false
+        steps:
+          - run:
+              name: Executing BATS Tests
+              command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
+      code-move-magic:
+        #description: "Not dealing with this now..."
+        parameters:
+          packed-orb-path:
+            description: "Path to where the packed orb's yaml is."
+            type: string
+            default: "./packed.yml" #in the root
+        steps:
+          - run:
+              name: Code Move!!!
+              command: |
+                function move_script_code() {
+                    local INSERT_TO_PATH=$1
+                    local INSERT_MARKER=$2
 
-                      local INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
-                      echo "${INDENTED_CODE}"
-                      local OPERATOR_ESCAPED_CODE=$(echo "${INDENTED_CODE}" | perl -ne 's/<\</\\\\<\</g; print;') #Well that's weird
-                      echo "Whatever\<<efaef >\<< \<<" | perl -ne 's/<\</\\<\</g; print;'
-                      echo "${OPERATOR_ESCAPED_CODE}"
-                      local UNESCAPE_MARKER_CODE=$(echo "${OPERATOR_ESCAPED_CODE}" | sed -E 's/\\\\(\<<#)/\1/g')
+                    local ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
+                    local IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
+                    local IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=\<<#)')
 
-                      local CODE_IN_BETWEEN=$(echo "${UNESCAPE_MARKER_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
-                      local RMV_FST_INDENT=$(echo "${CODE_IN_BETWEEN}" | sed -E "0,/${ESCAPED_IND}/s///")
-                      local MULTILINE_ESCAPED_CODE=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+                    local IM_INDENTATION=$(grep -oP "^\s+(?=${ESCAPED_IM})" $INSERT_TO_PATH)
+                    local ESCAPED_IND=$(echo "${IM_INDENTATION}" | sed -E 's~(.)~\\\1~g')
 
-                      local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<parameters\.\1>>~g')
-                      local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
-                      
-                      sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
-                  }
+                    local INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
+                    echo "${INDENTED_CODE}"
+                    local OPERATOR_ESCAPED_CODE=$(echo "${INDENTED_CODE}" | perl -ne 's/<\</\\\\<\</g; print;') #Well that's weird
+                    echo "Whatever\<<efaef >\<< \<<" | perl -ne 's/<\</\\<\</g; print;'
+                    echo "${OPERATOR_ESCAPED_CODE}"
+                    local UNESCAPE_MARKER_CODE=$(echo "${OPERATOR_ESCAPED_CODE}" | sed -E 's/\\\\(\<<#)/\1/g')
 
-                  function move_ref_code_to_file() {
-                      local INSERT_TO_PATH=$1
-                      local -a INSERT_MARKER_ARRAY=( $(grep -oP "#>>.+\|.+\<<#" $INSERT_TO_PATH) )
-                      echo ${INSERT_MARKER_ARRAY[@]}
+                    local CODE_IN_BETWEEN=$(echo "${UNESCAPE_MARKER_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
+                    local RMV_FST_INDENT=$(echo "${CODE_IN_BETWEEN}" | sed -E "0,/${ESCAPED_IND}/s///")
+                    local MULTILINE_ESCAPED_CODE=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
 
-                      for INSERT_MARKER in "${INSERT_MARKER_ARRAY[@]}"
-                      do
-                          move_script_code "${INSERT_TO_PATH}" "${INSERT_MARKER}"
-                      done
-                  }
+                    local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<parameters\.\1>>~g')
+                    local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
 
-                  move_ref_code_to_file << parameters.packed-orb-path >>
-                  
-                  echo "Result: "
-                  echo "$(cat << parameters.packed-orb-path >>)"
+                    sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
+                }
 
-      executors:
-        circleci-cli-image:
-          description: "The circleci-cli Docker image, which includes the CircleCI CLI"
-          parameters:
-            tag:
-              description: "Specifies the version of docker image"
-              type: string
-              default: latest
-          docker:
-          - image: circleci/circleci-cli:<<parameters.tag>>
+                function move_ref_code_to_file() {
+                    local INSERT_TO_PATH=$1
+                    local -a INSERT_MARKER_ARRAY=( $(grep -oP "#>>.+\|.+\<<#" $INSERT_TO_PATH) )
+                    echo ${INSERT_MARKER_ARRAY[@]}
+
+                    for INSERT_MARKER in "${INSERT_MARKER_ARRAY[@]}"
+                    do
+                        move_script_code "${INSERT_TO_PATH}" "${INSERT_MARKER}"
+                    done
+                }
+
+                move_ref_code_to_file << parameters.packed-orb-path >>
+
+                echo "Result: "
+                echo "$(cat << parameters.packed-orb-path >>)"
+
+    executors:
+      circleci-cli-image:
+        description: "The circleci-cli Docker image, which includes the CircleCI CLI"
+        parameters:
+          tag:
+            description: "Specifies the version of docker image"
+            type: string
+            default: latest
+        docker:
+        - image: circleci/circleci-cli:<<parameters.tag>>
                         
 workflows:
   build-deploy:
     jobs:
+      - shellcheck/check: #I feel like this is crap - Ideally I'd have this within my job with all the testing
+          path: './shell' #Does it scan recursivelly? TODO: Check it
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
@@ -294,8 +296,6 @@ workflows:
               only: master
             tags:
               only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
-      - shellcheck/check: #I feel like this is crap - Ideally I'd have this within my job with all the testing
-          path: './shell' #Does it scan recursivelly? TODO: Check it
 
 
 
