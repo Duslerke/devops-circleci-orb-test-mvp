@@ -58,7 +58,15 @@ orbs:
                   
                   echo "view packed--------------: "
                   echo "$(cat ./src/@orb.yml)" #<--- remove
+                  echo "zzz"
+                  echo "$(cat ./src/orb.yml)" #<--- remove
                   echo "packed end"
+                  
+                  echo "curr dir:-------------"
+                  ls
+                  
+                  echo "orb dir: -------"
+                  ls ./src
 
                   circleci orb validate ./src/@orb.yml --token << parameters.acc-token >>
                   if circleci orb publish ./src/@orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
