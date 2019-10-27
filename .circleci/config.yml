@@ -38,7 +38,7 @@ orbs:
                   echo "$(cat <<parameters.path-to-orb-dir>>)"
                   
                   echo "packing start"
-                  circleci config pack ./src > << parameters.packed-orb-path >>
+                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
             - code-move-magic:
                 packed-orb-path: << parameters.packed-orb-path >>
             - run:
