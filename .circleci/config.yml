@@ -27,18 +27,56 @@ orbs:
           executor: circleci-cli-image
           steps:
             - checkout
+            - code-move-magic
             - run:
                 name: Pack and Validate
                 command: |
+                  #echo "$(cat ./src/orb.yml)" #<--- remove
+                  #echo "packing orb"
+                  #
+                  #circleci config pack << parameters.path-to-orb >>
+                  #echo "orb packed"
+                  #
+                  #sed -i 's/\\n/\
+                  #/g' ./packed.yml
+                  #echo "$(cat ./packed.yml)"
+                  #circleci orb validate packed.yml --token << parameters.acc-token >>
+                  #if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  #  echo Existing Orb updated
+                  #else
+                  #  circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
+                  #  circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                  #  echo New Orb published
+                  #fi
+                  
+                  echo "initial: "
+                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  
+                  echo "packing start"
                   circleci config pack << parameters.path-to-orb >> > packed.yml
-                  circleci orb validate packed.yml --token << parameters.acc-token >>
-                  if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  echo "packing end"
+                  
+                  echo "view packed: "
+                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "packed end"
+
+                  circleci orb validate ./src/orb.yml --token << parameters.acc-token >>
+                  if circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
+            - run:
+                name: Sed TEST!!!!
+                command: |
+                  echo "sed tests"
+                  sed --version
+            - run:
+                name: Promote my test
+                command: |
+                  circleci orb publish promote lbh-test/test-mvp@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -85,6 +123,7 @@ orbs:
 
                   echo $CURRENT_VERSION
                   echo $NEXT_VERSION
+                  
       commands:
         get-version-number:
           steps:
@@ -207,6 +246,55 @@ orbs:
             - run:
                 name: Executing BATS Tests
                 command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
+        code-move-magic:
+          #description: "Not dealing with this now..."
+          steps:
+            - run:
+                name: Code Move!!!
+                command: |
+                  function move_script_code() {
+                      local INSERT_TO_PATH=$1
+                      local INSERT_MARKER=$2
+
+                      local ESCAPED_IM=$(echo $INSERT_MARKER | sed -E 's~(\||\.|\\)~\\\1~g')
+                      local IM_NAME=$(echo $INSERT_MARKER | grep -oP '(?<=#>>).+(?=\|)')
+                      local IM_PATH=$(echo $INSERT_MARKER | grep -oP '(?<=\|).+(?=\<<#)')
+
+                      local IM_INDENTATION=$(grep -oP "^\s+(?=${ESCAPED_IM})" $INSERT_TO_PATH)
+                      local ESCAPED_IND=$(echo "${IM_INDENTATION}" | sed -E 's~(.)~\\\1~g')
+
+                      local INDENTED_CODE=$(echo "$(cat $IM_PATH)" | sed -E ":a;N;\$!ba;s/\r{0,1}\n/\\n${IM_INDENTATION}/g")
+                      echo "${INDENTED_CODE}"
+                      local OPERATOR_ESCAPED_CODE=$(echo "${INDENTED_CODE}" | perl -ne 's/<\</\\\\<\</g; print;') #Well that's weird
+                      echo "Whatever\<<efaef >\<< \<<" | perl -ne 's/<\</\\<\</g; print;'
+                      echo "${OPERATOR_ESCAPED_CODE}"
+                      local UNESCAPE_MARKER_CODE=$(echo "${OPERATOR_ESCAPED_CODE}" | sed -E 's/\\\\(\<<#)/\1/g')
+
+                      local CODE_IN_BETWEEN=$(echo "${UNESCAPE_MARKER_CODE}" | sed -n "/#>>$IM_NAME\<<#/,/#>>$IM_NAME\<<#/p" | head -n-1 | tail -n+2)
+                      local RMV_FST_INDENT=$(echo "${CODE_IN_BETWEEN}" | sed -E "0,/${ESCAPED_IND}/s///")
+                      local MULTILINE_ESCAPED_CODE=$(echo "${RMV_FST_INDENT}" | sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g')
+
+                      local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<parameters\.\1>>~g')
+                      local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
+                      
+                      sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
+                  }
+
+                  function move_ref_code_to_file() {
+                      local INSERT_TO_PATH=$1
+                      local -a INSERT_MARKER_ARRAY=( $(grep -oP "#>>.+\|.+\<<#" $INSERT_TO_PATH) )
+                      echo ${INSERT_MARKER_ARRAY[@]}
+
+                      for INSERT_MARKER in "${INSERT_MARKER_ARRAY[@]}"
+                      do
+                          move_script_code "${INSERT_TO_PATH}" "${INSERT_MARKER}"
+                      done
+                  }
+
+                  move_ref_code_to_file './src/orb.yml'
+                  
+                  echo "$(cat ./src/orb.yml)" #<--- remove
+
       executors:
         circleci-cli-image:
           description: "The circleci-cli Docker image, which includes the CircleCI CLI"
