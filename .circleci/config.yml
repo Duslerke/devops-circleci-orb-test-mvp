@@ -24,10 +24,15 @@ orbs:
             path-to-orb:
               description: "A path to your orb file. Needed so that it could be packed and validated."
               type: string
+            packed-orb-path:
+              description: "Path to where the packed orb's yaml will be stored to."
+              type: string
+              default: "./packed.yml" #in the root
           executor: circleci-cli-image
           steps:
             - checkout
-            - code-move-magic
+            - code-move-magic:
+                packed-orb-path: << parameters.packed-orb-path >>
             - run:
                 name: Pack and Validate
                 command: |
@@ -53,13 +58,13 @@ orbs:
                   echo "$(cat ./src/@orb.yml)" #<--- remove
                   
                   echo "packing start"
-                  circleci config pack ./src     #<#< para#/orb.yml#meters.path-to-orb >> > packed.yml
+                  circleci config pack ./src > << parameters.packed-orb-path >>    #<#< para#/orb.yml#meters.path-to-orb >> > packed.yml
                   echo "packing end"
                   
                   echo "view packed--------------: "
                   echo "$(cat ./src/@orb.yml)" #<--- remove
                   echo "zzz"
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "$(cat << parameters.packed-orb-path >>)" #<--- remove
                   echo "packed end"
                   
                   echo "curr dir:-------------"
@@ -68,18 +73,18 @@ orbs:
                   echo "orb dir: -------"
                   ls ./src
 
-                  circleci orb validate ./src/@orb.yml --token << parameters.acc-token >>
-                  if circleci orb publish ./src/@orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
+                  if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish ./src/@orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
             - run:
                 name: Promote my test
                 command: |
-                  circleci orb publish promote lbh-test/test-mvp@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
+                  circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -245,6 +250,11 @@ orbs:
                 command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
         code-move-magic:
           #description: "Not dealing with this now..."
+          parameters:
+            packed-orb-path:
+              description: "Path to where the packed orb's yaml is."
+              type: string
+              default: "./packed.yml" #in the root
           steps:
             - run:
                 name: Code Move!!!
@@ -288,9 +298,9 @@ orbs:
                       done
                   }
 
-                  move_ref_code_to_file './src/orb.yml'
+                  move_ref_code_to_file << parameters.packed-orb-path >>
                   
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "$(cat << parameters.packed-orb-path >>)" #<--- remove
 
       executors:
         circleci-cli-image:
