@@ -53,7 +53,7 @@ orbs:
                   echo "$(cat ./src/@orb.yml)" #<--- remove
                   
                   echo "packing start"
-                  circleci config pack ./src/orb.yml     #<#< parameters.path-to-orb >> > packed.yml
+                  circleci config pack ./src     #<#< para#/orb.yml#meters.path-to-orb >> > packed.yml
                   echo "packing end"
                   
                   echo "view packed: "
