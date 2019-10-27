@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+  shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
       jobs:
         test-orb-locally:
@@ -21,75 +22,44 @@ orbs:
                             When this these commands are being run from a container on circleci servers, they have no access to your credentials \
                             This parameter is where you provide them."
               type: string
-            path-to-orb:
+            path-to-orb-dir:
               description: "A path to your orb file. Needed so that it could be packed and validated."
+              type: string
+            packed-orb-path:
+              description: "Path to where the packed orb's yaml will be stored to."
+              type: string
+              default: "./packed.yml" #in the root
+            tests-location:
+              description: "Folder location of BATS test files"
               type: string
           executor: circleci-cli-image
           steps:
             - checkout
-            - code-move-magic
             - run:
-                name: Pack and Validate
+                name: Pack the orb
                 command: |
-                  #echo "$(cat ./src/orb.yml)" #<--- remove
-                  #echo "packing orb"
-                  #
-                  #circleci config pack << parameters.path-to-orb >> > packed.yml
-                  #echo "orb packed"
-                  #
-                  #sed -i 's/\\n/\
-                  #/g' ./packed.yml
-                  #echo "$(cat ./packed.yml)"
-                  #circleci orb validate packed.yml --token << parameters.acc-token >>
-                  #if circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
-                  #  echo Existing Orb updated
-                  #else
-                  #  circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                  #  circleci orb publish packed.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
-                  #  echo New Orb published
-                  #fi
-                  
-                  echo "initial: "
-                  echo "$(cat ./src/orb.yml)" #<--- remove
-                  
-                  echo "packing start"
-                  circleci config pack << parameters.path-to-orb >>
-                  echo "packing end"
-                  
-                  echo "view packed: "
-                  echo "$(cat ./src/orb.yml)" #<--- remove
-                  echo "packed end"
+                  echo "Initial orb file: "
+                  echo "$(cat <<parameters.path-to-orb-dir>>)"
 
-                  circleci orb validate ./src/orb.yml --token << parameters.acc-token >>
-                  if circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  echo "packing start"
+                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
+            - code-move-magic:
+                packed-orb-path: << parameters.packed-orb-path >>
+            - run:
+                name: Validate and publish Dev version
+                command: |
+                  circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
+                  if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish ./src/orb.yml << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
             - run:
-                name: Sed TEST!!!!
-                command: |
-                  echo "sed tests"
-                  sed --version
-            - run:
                 name: Promote my test
                 command: |
-                  #echo "Let's try an existing one: "
-                  #circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
-                  #echo "Full: "
-                  #circleci orb info lbh-test/test-mvp@volatile
-                  #echo "and non-existing prod one: "
-                  #publish
-                  #circleci orb info lbh-test/something@dev:whatever --token $CIRCLE_API_KEY
-                  #circleci orb create lbh-test/something --no-prompt --token $CIRCLE_API_KEY
-                  #circleci orb publish ./src/orb.yml lbh-test/something@dev:whatever --token $CIRCLE_API_KEY
-                  #circleci orb info lbh-test/something@volatile | grep -oP "(\d+\.)+\d+\b"
-                  echo full info:
-                  
-                  circleci orb publish promote lbh-test/something@dev:whatever patch --token ${CIRCLE_API_KEY} #this is temp
-                  circleci orb info lbh-test/something@volatile | grep -oP '(\d+\.)+\d+\b' || echo "0.0.0"
+                  circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -110,12 +80,6 @@ orbs:
           steps:
             - checkout
             - install-bats
-      #       - run:
-      #           name: Check if current working dir is reset, run bats tests
-      #           command: |
-      #             pwd #looks like we're in the root of github
-      #             ls
-      #             bats ./tests/sample-tests.bats #pls work
             - run-bats-tests:
                 tests-location: << parameters.tests-location >>
                 recursive: << parameters.tests-recursive >>
@@ -125,23 +89,12 @@ orbs:
             - run: 
                 name: Promote to prod
                 command: |
-                  echo "New command"
                   echo "Promoting happens here. No point to add right now."
-                  pwd
-                  ls
-                  echo $(cat my_envvar_dir/vsegment-envvar)
-                  env
-                  echo "End"
                   echo $SEGMENT
-
                   echo $CURRENT_VERSION
                   echo $NEXT_VERSION
-                  
+
       commands:
-        get-version-number:
-          steps:
-          - run: |
-              circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
         install-bats:
           description: Installs Bash Automated Testing System
           steps:
@@ -150,8 +103,6 @@ orbs:
                 command: |
                   cd /tmp && git clone https://github.com/bats-core/bats-core.git && cd bats-core
                   sudo ./install.sh /usr/local
-                  pwd
-                  ls -a
                   bats -v
         get-version-segment:
           description: "Extracts version numbers from the Release tag name and most recent orb version information.\
@@ -239,10 +190,8 @@ orbs:
                   #echo $(getReleaseType $CURRENT_VERSION $NEXT_VERSION)
 
                   mkdir -p my_envvar_dir
-
                   #hardcode temp
                   echo $(getReleaseType "1.2.222" "1.2.223") > my_envvar_dir/vsegment-envvar
-
                   echo "export SEGMENT=$(echo $(cat my_envvar_dir/vsegment-envvar))" >> $BASH_ENV    #export a command to access the var effortlessly
         run-bats-tests:
           description: "Runs all BATS tests (.bats ext) in a specified directory, and its subdirectories if recursive flag is set to 'true'."
@@ -262,6 +211,11 @@ orbs:
                 command: bats <<# parameters.recursive >> -r <</ parameters.recursive >> << parameters.tests-location >>
         code-move-magic:
           #description: "Not dealing with this now..."
+          parameters:
+            packed-orb-path:
+              description: "Path to where the packed orb's yaml is."
+              type: string
+              default: "./packed.yml" #in the root
           steps:
             - run:
                 name: Code Move!!!
@@ -290,7 +244,7 @@ orbs:
 
                       local CIRCLECI_VARS_FORMATTED_CODE=$(echo "${MULTILINE_ESCAPED_CODE}" | sed -E 's~\$\{?CCI_(\w+)\}?~\<<parameters\.\1>>~g')
                       local FINAL_CODE=$(echo "${CIRCLECI_VARS_FORMATTED_CODE}" | perl -ne 's/(?:\<<parameters\.|\G(?!^))(?:(?!__)[^>>])*\K__/\-/g; print;')
-                      
+
                       sed -i -E "s~$ESCAPED_IM~$FINAL_CODE~g" $INSERT_TO_PATH
                   }
 
@@ -305,9 +259,10 @@ orbs:
                       done
                   }
 
-                  move_ref_code_to_file './src/orb.yml'
-                  
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  move_ref_code_to_file << parameters.packed-orb-path >>
+
+                  echo "Result: "
+                  echo "$(cat << parameters.packed-orb-path >>)"
 
       executors:
         circleci-cli-image:
@@ -319,19 +274,28 @@ orbs:
               default: latest
           docker:
           - image: circleci/circleci-cli:<<parameters.tag>>
-                        
+
+
 workflows:
+  shellcheck:
+    jobs:
+      - shellcheck/check
   build-deploy:
     jobs:
+      - shellcheck/check #this is stupid, but I want to check the concept
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
-          path-to-orb: "src/"
+          path-to-orb-dir: "./src"
+          #packed-orb-path: has a default
+          tests-location: "./tests"
+          requires:
+            - shellcheck/check
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
-          tests-location: "tests"
+          tests-location: "./tests"
           tests-recursive: true
 #           requires:
 #             - orbs-orb/test-orb-locally
@@ -340,9 +304,3 @@ workflows:
               only: master
             tags:
               only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
-
-
-
-
-            
-            

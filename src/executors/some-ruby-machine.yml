@@ -1,0 +1,8 @@
+description: "nothing important"
+parameters:
+  tag:
+    description: "Specify version..."
+    type: string
+    default: 2.4.2-jessie-node
+docker:
+  - image: circleci/ruby:<<parameters.tag>>

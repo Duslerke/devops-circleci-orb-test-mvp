@@ -1,0 +1,5 @@
+steps:
+  - run: |
+      #>>Echo7|./shell/my_param_script.sh<<#
+  
+      echo "my_param_script"
