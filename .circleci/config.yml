@@ -275,10 +275,11 @@ orbs:
         - image: circleci/circleci-cli:<<parameters.tag>>
                         
 workflows:
+  shellcheck:
+    jobs:
+      - shellcheck/check
   build-deploy:
     jobs:
-      - shellcheck/check: #I feel like this is crap - Ideally I'd have this within my job with all the testing
-          path: './shell' #Does it scan recursivelly? TODO: Check it
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
