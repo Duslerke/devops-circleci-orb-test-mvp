@@ -1,9 +1,8 @@
 version: 2.1
 
 orbs:
+  shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
-      orbs:
-        shellcheck: circleci/shellcheck@1.3.15
       jobs:
         test-orb-locally:
           description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
@@ -36,8 +35,6 @@ orbs:
           executor: circleci-cli-image
           steps:
             - checkout
-            - shellcheck/check:
-                path: './shell' #Does it scan recursivelly? TODO: Check it
             - run:
                 name: Pack the orb
                 command: |
@@ -297,6 +294,8 @@ workflows:
               only: master
             tags:
               only: /[^\.]*(\d+\.\d+\.\d+)[^\.]*/
+      - shellcheck/check: #I feel like this is crap - Ideally I'd have this within my job with all the testing
+          path: './shell' #Does it scan recursivelly? TODO: Check it
 
 
 
