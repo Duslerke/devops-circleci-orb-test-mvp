@@ -31,10 +31,8 @@ orbs:
           executor: circleci-cli-image
           steps:
             - checkout
-            - code-move-magic:
-                packed-orb-path: << parameters.packed-orb-path >>
             - run:
-                name: Pack and Validate
+                name: Pack the orb
                 command: |
                   #echo "$(cat ./src/orb.yml)" #<--- remove
                   #echo "packing orb"
@@ -72,7 +70,11 @@ orbs:
                   
                   echo "orb dir: -------"
                   ls ./src
-
+            - code-move-magic:
+                packed-orb-path: << parameters.packed-orb-path >>
+            - run:
+                name: Validate and publish Dev version
+                command: |
                   circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
                   if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
