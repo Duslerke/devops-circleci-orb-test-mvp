@@ -76,6 +76,14 @@ orbs:
             - run:
                 name: Promote my test
                 command: |
+                  echo "Let's try an existing one: "
+                  circleci orb info lbh-test/test-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
+                  echo "Full: "
+                  circleci orb info lbh-test/test-mvp@volatile
+                  echo "and non-existing one: "
+                  circleci orb info lbh-test/testdd-mvp@volatile | grep -oP "(\d+\.)+\d+\b"
+                  echo full info:
+                  circleci orb info lbh-test/testdd-mvp@volatile
                   circleci orb publish promote lbh-test/test-mvp@dev:Shell-Extraction-Test minor --token ${CIRCLE_API_KEY} #this is temp
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
