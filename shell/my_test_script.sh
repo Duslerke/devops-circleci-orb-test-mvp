@@ -3,10 +3,13 @@
 #>>Script1<<#
 
 function spamTheScreen() {
-    for i in $(seq $1 $2); do
+    for i in $(seq "$1" "$2"); do
         a[i]=$i
+        echo "current number is: $i"
     done
 }
+
+echo "{a[@]}"
 
 #Oh btw, this code contains this operator << omg, circle ci will break now
 #Unless I escape << it with \<<, this requires automation, however.
