@@ -9,7 +9,7 @@ function spamTheScreen() {
     done
 }
 
-echo "{a[@]}"
+echo "{a[*]}"
 
 #Oh btw, this code contains this operator << omg, circle ci will break now
 #Unless I escape << it with \<<, this requires automation, however.
