@@ -281,6 +281,7 @@ workflows:
       - shellcheck/check
   build-deploy:
     jobs:
+      - shellcheck/check #this is stupid, but I want to check the concept
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
@@ -288,6 +289,8 @@ workflows:
           path-to-orb-dir: "./src"
           #packed-orb-path: has a default
           tests-location: "./tests"
+          requires:
+            - shellcheck/check
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
