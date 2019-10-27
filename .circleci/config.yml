@@ -50,14 +50,14 @@ orbs:
                   #fi
                   
                   echo "initial: "
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "$(cat ./src/@orb.yml)" #<--- remove
                   
                   echo "packing start"
-                  circleci config pack << parameters.path-to-orb >>
+                  circleci config pack ./src/orb.yml     #<#< parameters.path-to-orb >>
                   echo "packing end"
                   
                   echo "view packed: "
-                  echo "$(cat ./src/orb.yml)" #<--- remove
+                  echo "$(cat ./src/@orb.yml)" #<--- remove
                   echo "packed end"
 
                   circleci orb validate ./src/orb.yml --token << parameters.acc-token >>
