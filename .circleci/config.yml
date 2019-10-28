@@ -40,8 +40,8 @@ orbs:
                   echo "Initial orb file: "
                   #echo "$(cat <<parameters.path-to-orb-dir>>)"
 
-                  echo <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(?=(\\|\/)[-\w]+\.yml)'
-                  mkdir -p $(echo <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(?=(\\|\/)[-\w]+\.yml)')
+                  echo <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(\\|\/)(?=[-\w]+\.yml)'
+                  mkdir -p $(echo <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(\\|\/)(?=[-\w]+\.yml)')
                   echo "packing start"
                   circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
             - code-move-magic:
@@ -96,7 +96,7 @@ orbs:
                     circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
-            - run:
+            - run: ######################################### Remove this at some point
                 name: Promote my test
                 command: |
                   circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
@@ -244,7 +244,6 @@ orbs:
             packed-orb-path:
               description: "Path to where the packed orb's yaml is."
               type: string
-              default: "./packed/packed.yml" #in the root
           steps:
             - run:
                 name: Code Move!!!
@@ -316,14 +315,14 @@ workflows:
             - shellcheck/check
       - orbs-orb/pack-and-test-orb:
           path-to-orb-dir: "./src"
-          #packed-orb-path: has a default
+          packed-orb-path: "./packed/packed.yml"
           requires:
             - orbs-orb/shell-tests
       - orbs-orb/publish-dev-orb:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
-          #packed-orb-path: has a default
+          packed-orb-path: "./packed/packed.yml" ##########################################################
           requires:
             - orbs-orb/pack-and-test-orb
       - orbs-orb/publish:
