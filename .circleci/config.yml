@@ -313,12 +313,6 @@ orbs:
           docker:
           - image: circleci/circleci-cli:<<parameters.tag>>
 
-packed-orb-dir-path:
-              description: "Directory path, where the packed orb's yaml will be stored to. Must end with slash ('/')"
-              type: string
-              default: "./packed/" #in the root
-            packed-orb-name:
-
 workflows:
   build-deploy:
     jobs:
