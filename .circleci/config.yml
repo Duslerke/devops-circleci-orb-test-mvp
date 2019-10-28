@@ -30,15 +30,14 @@ orbs:
             packed-orb-path:
               description: "Path to where the packed orb's yaml will be stored to."
               type: string
-              default: "./packed.yml" #in the root
+              default: "./packed/packed.yml" #in the root
           executor: circleci-cli-image
           steps:
+            - checkout
             - run:
                 name: Pack the orb
                 command: |
                   echo "Initial orb file: "
-                  ls
-                  ls ./src
                   echo "$(cat <<parameters.path-to-orb-dir>>)"
 
                   echo "packing start"
@@ -49,6 +48,9 @@ orbs:
                 name: Validate orb schema
                 command: |
                   circleci orb validate << parameters.packed-orb-path >>
+            - persist_to_workspace:
+                root: "./packed"
+                paths: "packed.yml" #################################################################### Hardcoded!!!!!
         publish-dev-orb:
           description: "Publishes development version of an orb. If the orb repository in the circleci registry is not created yet, then\
                         it creates it with the orb-name provided."
@@ -71,9 +73,11 @@ orbs:
             packed-orb-path:
               description: "Path to where the packed orb's yaml will be stored to."
               type: string
-              default: "./packed.yml" #in the root
+              default: "./packed/packed.yml" #in the root
           executor: circleci-cli-image
           steps:
+            - attach_workspace:
+                at: "." ############################################################################ Let's see if it allows for root
             - run:
                 name: Publish Dev version
                 command: |
@@ -232,7 +236,7 @@ orbs:
             packed-orb-path:
               description: "Path to where the packed orb's yaml is."
               type: string
-              default: "./packed.yml" #in the root
+              default: "./packed/packed.yml" #in the root
           steps:
             - run:
                 name: Code Move!!!
