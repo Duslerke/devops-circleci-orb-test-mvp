@@ -21,8 +21,35 @@ orbs:
                 tests-location: << parameters.tests-location >>
                 recursive: << parameters.tests-recursive >>
 
-        test-orb-locally:
-          description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
+        pack-and-test-orb:
+          description: "Packs the orb, moves the scripts to it and then validates it."
+          parameters:
+            path-to-orb-dir:
+              description: "A path to your orb file. Needed so that it could be packed and validated."
+              type: string
+            packed-orb-path:
+              description: "Path to where the packed orb's yaml will be stored to."
+              type: string
+              default: "./packed.yml" #in the root
+          executor: circleci-cli-image
+          steps:
+            - run:
+                name: Pack the orb
+                command: |
+                  echo "Initial orb file: "
+                  echo "$(cat <<parameters.path-to-orb-dir>>)"
+
+                  echo "packing start"
+                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
+            - code-move-magic:
+                packed-orb-path: << parameters.packed-orb-path >>
+            - run:
+                name: Validate orb schema
+                command: |
+                  circleci orb validate << parameters.packed-orb-path >>
+        publish-dev-orb:
+          description: "Publishes development version of an orb. If the orb repository in the circleci registry is not created yet, then\
+                        it creates it with the orb-name provided."
           parameters:
             orb-name:
               description: "The name of the orb that is being developed - it should match how this orb is named in circleci registry. If it \
@@ -39,33 +66,14 @@ orbs:
                             When this these commands are being run from a container on circleci servers, they have no access to your credentials \
                             This parameter is where you provide them."
               type: string
-            path-to-orb-dir:
-              description: "A path to your orb file. Needed so that it could be packed and validated."
-              type: string
             packed-orb-path:
               description: "Path to where the packed orb's yaml will be stored to."
               type: string
               default: "./packed.yml" #in the root
-            tests-location:
-              description: "Folder location of BATS test files"
-              type: string
-          executor: circleci-cli-image
           steps:
-            - checkout
             - run:
-                name: Pack the orb
+                name: Publish Dev version
                 command: |
-                  echo "Initial orb file: "
-                  echo "$(cat <<parameters.path-to-orb-dir>>)"
-
-                  echo "packing start"
-                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
-            - code-move-magic:
-                packed-orb-path: << parameters.packed-orb-path >>
-            - run:
-                name: Validate and publish Dev version
-                command: |
-                  circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
                   if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
@@ -291,15 +299,18 @@ workflows:
           tests-recursive: true
           requires:
             - shellcheck/check
-      - orbs-orb/test-orb-locally:
+      - orbs-orb/pack-and-test-orb:
+          path-to-orb-dir: "./src"
+          #packed-orb-path: has a default
+          requires:
+            - orbs-orb/shell-tests
+      - orbs-orb/publish-dev-orb:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
-          path-to-orb-dir: "./src"
           #packed-orb-path: has a default
-          tests-location: "./tests"
           requires:
-            - orbs-orb/shell-tests
+            - orbs-orb/pack-and-test-orb
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
