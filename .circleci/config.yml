@@ -4,6 +4,23 @@ orbs:
   shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
       jobs:
+        shell-tests:
+          description: "Installs bats and runs shell tests."
+          parameters:
+            tests-location:
+              description: "Folder location of BATS test files"
+              type: string
+            tests-recursive:
+              description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
+              type: boolean
+          executor: circleci-cli-image
+          steps:
+            - checkout
+            - install-bats
+            - run-bats-tests:
+                tests-location: << parameters.tests-location >>
+                recursive: << parameters.tests-recursive >>
+
         test-orb-locally:
           description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
           parameters:
@@ -70,19 +87,8 @@ orbs:
                   description: "Here you plug in $CIRCLE_TAG environment variable. It doesn't have to be a tag name it can be any string that contains \
                                a semantic version number like 0.2.1 (or 4.0.15 and in general major.minor.patch)." #I don't think that $CIRCLE_TAG is default worthy - it might cause confusion as it only works when release is made
                   type: string
-            tests-location:
-                  description: "Folder location of BATS test files"
-                  type: string
-            tests-recursive:
-                  description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
-                  type: boolean
           executor: circleci-cli-image
           steps:
-            - checkout
-            - install-bats
-            - run-bats-tests:
-                tests-location: << parameters.tests-location >>
-                recursive: << parameters.tests-recursive >>
             - get-version-segment:
                 orb-name: << parameters.orb-name >>
                 release-tag-name: << parameters.release-tag-name >>
@@ -280,6 +286,10 @@ workflows:
   build-deploy:
     jobs:
       - shellcheck/check
+      - orbs-orb/shell-tests:
+          tests-location: "./tests"
+          tests-recursive: true
+          requires: shellcheck/check
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
@@ -292,8 +302,6 @@ workflows:
       - RandomName: orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
-          tests-location: "./tests"
-          tests-recursive: true
 #           requires:
 #             - orbs-orb/test-orb-locally
           filters:
