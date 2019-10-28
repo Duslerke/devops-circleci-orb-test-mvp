@@ -279,8 +279,7 @@ orbs:
 workflows:
   build-deploy:
     jobs:
-      - ShellCheck: 
-         - shellcheck/check
+      - shellcheck/check
       - orbs-orb/test-orb-locally:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
