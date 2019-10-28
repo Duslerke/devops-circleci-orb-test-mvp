@@ -85,7 +85,6 @@ orbs:
                 ls -a
                 ls -a .
                 ls -a ./packed
-                ls -a ./tmp
                 echo "end line"
             - run:
                 name: Publish Dev version
