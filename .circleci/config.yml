@@ -70,6 +70,7 @@ orbs:
               description: "Path to where the packed orb's yaml will be stored to."
               type: string
               default: "./packed.yml" #in the root
+          executor: circleci-cli-image
           steps:
             - run:
                 name: Publish Dev version
