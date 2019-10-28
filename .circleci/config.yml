@@ -18,7 +18,7 @@ orbs:
             - checkout
             - install-bats
             - run-bats-tests:
-                tests-location: << parameters.tests-location >>
+                tests-location: << parameters.tests-location >><< parameters.tests-location >><< parameters.tests-location >><< parameters.tests-location >>
                 recursive: << parameters.tests-recursive >>
 
         pack-and-test-orb:
