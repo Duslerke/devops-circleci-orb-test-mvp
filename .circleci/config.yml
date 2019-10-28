@@ -79,7 +79,7 @@ orbs:
           executor: circleci-cli-image
           steps:
             - attach_workspace:
-                at: "." ############################################################################ Let's see if it allows for root
+                at: "./packed" ############################################################################ Let's see if it allows for root
             - run: |
                 echo "start line"
                 ls -a
