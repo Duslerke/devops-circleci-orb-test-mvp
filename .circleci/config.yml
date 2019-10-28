@@ -289,7 +289,7 @@ workflows:
           tests-location: "./tests"
           requires:
             - shellcheck/check
-      - orbs-orb/publish:
+      - RandomName: orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
           tests-location: "./tests"
