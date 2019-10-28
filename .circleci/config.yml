@@ -299,7 +299,7 @@ workflows:
           #packed-orb-path: has a default
           tests-location: "./tests"
           requires:
-            - shellcheck/check
+            - orbs-orb/shell-tests
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
