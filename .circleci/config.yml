@@ -41,7 +41,7 @@ orbs:
                   #echo "$(cat <<parameters.path-to-orb-dir>>)"
 
                   echo <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(?=(\\|\/)[-\w]+\.yml)'
-                  mkdir -p <<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(?=(\\|\/)[-\w]+\.yml)'
+                  mkdir -p $(<<parameters.packed-orb-path>> | grep -oP '\w[-\w\/\\]+(?=(\\|\/)[-\w]+\.yml)')
                   echo "packing start"
                   circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
             - code-move-magic:
