@@ -37,6 +37,8 @@ orbs:
                 name: Pack the orb
                 command: |
                   echo "Initial orb file: "
+                  ls
+                  ls ./src
                   echo "$(cat <<parameters.path-to-orb-dir>>)"
 
                   echo "packing start"
