@@ -80,6 +80,13 @@ orbs:
           steps:
             - attach_workspace:
                 at: "." ############################################################################ Let's see if it allows for root
+            - run: |
+                echo "start line"
+                ls -a
+                ls -a .
+                ls -a ./packed
+                ls -a ./tmp
+                echo "end line"
             - run:
                 name: Publish Dev version
                 command: |
