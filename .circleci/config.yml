@@ -18,7 +18,7 @@ orbs:
             - checkout
             - install-bats
             - run-bats-tests:
-                tests-location: << parameters.tests-location >><< parameters.tests-location >><< parameters.tests-location >><< parameters.tests-location >>
+                tests-location: << parameters.tests-location >>
                 recursive: << parameters.tests-recursive >>
 
         pack-and-test-orb:
@@ -55,7 +55,7 @@ orbs:
             - run:
                 name: Validate orb schema
                 command: |
-                  circleci orb validate << parameters.packed-orb-path >>
+                  circleci orb validate <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
             - persist_to_workspace:
                 root: <<parameters.packed-orb-dir-path>>
                 paths: <<parameters.packed-orb-name>>
