@@ -4,8 +4,64 @@ orbs:
   shellcheck: circleci/shellcheck@1.3.15
   orbs-orb: #inline orb name
       jobs:
-        test-orb-locally:
-          description: "Checks orb YAML file, Runs BATS tests. If everything is alright, publishes a development orb."
+        shell-tests:
+          description: "Installs bats and runs shell tests."
+          parameters:
+            tests-location:
+              description: "Folder location of BATS test files"
+              type: string
+            tests-recursive:
+              description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
+              type: boolean
+          executor: circleci-cli-image
+          steps:
+            - checkout
+            - install-bats
+            - run-bats-tests:
+                tests-location: << parameters.tests-location >>
+                recursive: << parameters.tests-recursive >>
+
+        pack-and-test-orb:
+          description: "Packs the orb, moves the scripts to it and then validates it."
+          parameters:
+            path-to-orb-dir: ############################ RENAME ALL THE PATH-TO-... into PARTIAL-ORB-...
+              description: "A path to your orb file. Needed so that it could be packed and validated."
+              type: string
+            packed-orb-dir-path:
+              description: "Directory path, where the packed orb's yaml will be stored to. Must end with slash ('/')"
+              type: string
+              default: "./packed/" #in the root
+            packed-orb-name:
+              description: "The name of the file that will contain packed orb's configuration"
+              type: string
+              default: "packed.yml"
+          executor: circleci-cli-image
+          steps:
+            - checkout
+            - run:
+                name: Pack the orb
+                command: |
+
+                  echo "Initial orb file: "
+                  #echo "$(cat <<parameters.path-to-orb-dir>>)" ##################################????
+
+                  mkdir -p <<parameters.packed-orb-dir-path>>
+                  ls
+                  echo "packing started"
+                  circleci config pack <<parameters.path-to-orb-dir>> > <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
+                  echo "packing ended"
+            - code-move-magic:
+                packed-orb-path: <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
+            - run:
+                name: Validate orb schema
+                command: |
+                  circleci orb validate <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
+            - persist_to_workspace:
+                root: <<parameters.packed-orb-dir-path>>
+                paths: <<parameters.packed-orb-name>>
+        publish-dev-orb:
+          description: "Publishes development version of an orb. If the orb repository in the circleci registry is not created yet, then\
+                        it creates it with the orb-name provided."
           parameters:
             orb-name:
               description: "The name of the orb that is being developed - it should match how this orb is named in circleci registry. If it \
@@ -22,41 +78,35 @@ orbs:
                             When this these commands are being run from a container on circleci servers, they have no access to your credentials \
                             This parameter is where you provide them."
               type: string
-            path-to-orb-dir:
-              description: "A path to your orb file. Needed so that it could be packed and validated."
+            packed-orb-dir-path:
+              description: "Directory path, where the packed orb's yaml will be stored to. Must end without slash ('/')"
               type: string
-            packed-orb-path:
-              description: "Path to where the packed orb's yaml will be stored to."
+              default: "./packed/" #in the root
+            packed-orb-name:
+              description: "The name of the file that will contain packed orb's configuration"
               type: string
-              default: "./packed.yml" #in the root
-            tests-location:
-              description: "Folder location of BATS test files"
-              type: string
+              default: "packed.yml"
           executor: circleci-cli-image
           steps:
-            - checkout
+            - attach_workspace:
+                at: <<parameters.packed-orb-dir-path>>
+            - run: |
+                echo "start line"
+                ls -a
+                ls -a .
+                ls -a ./packed
+                echo "end line"
             - run:
-                name: Pack the orb
+                name: Publish Dev version #ideally would be extracted as a command, so that I could simply pass in the full path combined
                 command: |
-                  echo "Initial orb file: "
-                  echo "$(cat <<parameters.path-to-orb-dir>>)"
-
-                  echo "packing start"
-                  circleci config pack << parameters.path-to-orb-dir >> > << parameters.packed-orb-path >>
-            - code-move-magic:
-                packed-orb-path: << parameters.packed-orb-path >>
-            - run:
-                name: Validate and publish Dev version
-                command: |
-                  circleci orb validate << parameters.packed-orb-path >> --token << parameters.acc-token >>
-                  if circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
+                  if circleci orb publish <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>; then
                     echo Existing Orb updated
                   else
                     circleci orb create << parameters.orb-name >> --no-prompt --token << parameters.acc-token >>
-                    circleci orb publish << parameters.packed-orb-path >> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
+                    circleci orb publish <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>> << parameters.orb-name >>@dev:<< parameters.dev-version >> --token << parameters.acc-token >>
                     echo New Orb published
                   fi
-            - run:
+            - run: ######################################### Remove this at some point
                 name: Promote my test
                 command: |
                   circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
@@ -70,19 +120,8 @@ orbs:
                   description: "Here you plug in $CIRCLE_TAG environment variable. It doesn't have to be a tag name it can be any string that contains \
                                a semantic version number like 0.2.1 (or 4.0.15 and in general major.minor.patch)." #I don't think that $CIRCLE_TAG is default worthy - it might cause confusion as it only works when release is made
                   type: string
-            tests-location:
-                  description: "Folder location of BATS test files"
-                  type: string
-            tests-recursive:
-                  description: "If true, then runs all tests in the subdirectories of 'tests-location', if false, runs only the tests in 'tests-location'. 'false' by deafault."
-                  type: boolean
           executor: circleci-cli-image
           steps:
-            - checkout
-            - install-bats
-            - run-bats-tests:
-                tests-location: << parameters.tests-location >>
-                recursive: << parameters.tests-recursive >>
             - get-version-segment:
                 orb-name: << parameters.orb-name >>
                 release-tag-name: << parameters.release-tag-name >>
@@ -215,7 +254,6 @@ orbs:
             packed-orb-path:
               description: "Path to where the packed orb's yaml is."
               type: string
-              default: "./packed.yml" #in the root
           steps:
             - run:
                 name: Code Move!!!
@@ -275,28 +313,32 @@ orbs:
           docker:
           - image: circleci/circleci-cli:<<parameters.tag>>
 
-
 workflows:
-  shellcheck:
-    jobs:
-      - shellcheck/check
   build-deploy:
     jobs:
       - shellcheck/check #this is stupid, but I want to check the concept
-      - orbs-orb/test-orb-locally:
+      - orbs-orb/shell-tests:
+          tests-location: "./tests"
+          tests-recursive: true
+          requires:
+            - shellcheck/check
+      - orbs-orb/pack-and-test-orb:
+          path-to-orb-dir: "./src"
+          packed-orb-dir-path: "./packed/"
+          packed-orb-name: "packed.yml"
+          requires:
+            - orbs-orb/shell-tests
+      - orbs-orb/publish-dev-orb:
           orb-name: "lbh-test/test-mvp"
           dev-version: $CIRCLE_BRANCH
           acc-token: $CIRCLE_API_KEY
-          path-to-orb-dir: "./src"
-          #packed-orb-path: has a default
-          tests-location: "./tests"
+          packed-orb-dir-path: "./packed/"
+          packed-orb-name: "packed.yml"
           requires:
-            - shellcheck/check
+            - orbs-orb/pack-and-test-orb
       - orbs-orb/publish:
           orb-name: "lbh-test/test-mvp"
           release-tag-name: $CIRCLE_TAG
-          tests-location: "./tests"
-          tests-recursive: true
 #           requires:
 #             - orbs-orb/test-orb-locally
           filters:
