@@ -110,6 +110,10 @@ orbs:
                 name: Promote my test
                 command: |
                   circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
+            ##################################################################
+            - params-test:
+                job-sub-param: <<parameters.orb-name>> | grep -oP '\w+'
+                
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
           parameters:
@@ -301,6 +305,22 @@ orbs:
 
                   echo "Result: "
                   echo "$(cat << parameters.packed-orb-path >>)"
+        params-test:
+          parameters:
+            job-sub-param:
+              description: "Get's a subselection of passed in parameter"
+              type: string
+          steps:
+            - run:
+                name: "Params-Test!!!"
+                command: |
+                  function pruntOut(){
+                    subparam=$1
+                    echo $subparam
+                  }
+                  
+                  pruntOut <<parameters.job-sub-param>>
+            
 
       executors:
         circleci-cli-image:
