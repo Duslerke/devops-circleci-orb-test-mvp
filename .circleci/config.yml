@@ -112,7 +112,7 @@ orbs:
                   circleci orb publish promote << parameters.orb-name >>@dev:<< parameters.dev-version >> patch --token ${CIRCLE_API_KEY} #this is temp
             ##################################################################
             - params-test:
-                job-sub-param: <<parameters.orb-name>> | grep -oP '\w+'
+                job-sub-param: $(echo "<<parameters.orb-name>>" | grep -oP '\w{4}')
                 
         publish:
           description: "Runs BATS and orb YAML tests, if there are no issues, publishes the orb." #Ideally there would be some integration tests.
