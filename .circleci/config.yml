@@ -35,12 +35,16 @@ orbs:
               description: "The name of the file that will contain packed orb's configuration"
               type: string
               default: "packed.yml"
-            packed-orb-full-path:
-              description: "File path of packed orb yml configuration."
-              type: string
-              default: "./packed/packed.yml"
           executor: circleci-cli-image
           steps:
+            - run:
+                name: Pre-process packed orb file path
+                command: |
+                  echo "block of code that adds the missing / or \ to the path"
+                  echo "block of code that concats p-o-name and p-o-path-from-1st-block into p-o-full-path"
+                  echo "line of code that exports that f-p as an environment variable in BASH_ENV"
+                  # TODO: after that change every place where params were concatinated into this env var
+                  # TODO: change the descriptions of the parameters to exclude the requirement of / at the end!
             - checkout
             - run:
                 name: Pack the orb
@@ -350,7 +354,6 @@ workflows:
           path-to-orb-dir: "./src"
           packed-orb-dir-path: "./packed/"
           packed-orb-name: "packed.yml"
-          packed-orb-full-path: "./packed/packed.yml"
           requires:
             - orbs-orb/shell-tests
       - orbs-orb/publish-dev-orb:
