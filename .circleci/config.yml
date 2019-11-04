@@ -62,7 +62,7 @@ orbs:
                   circleci orb validate <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
             - persist_to_workspace:
                 root: <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>> #$(echo "<<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>" | \n grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')
-                #paths: <<parameters.packed-orb-name>>
+                paths: .
         publish-dev-orb:
           description: "Publishes development version of an orb. If the orb repository in the circleci registry is not created yet, then\
                         it creates it with the orb-name provided."
