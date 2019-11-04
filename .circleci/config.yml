@@ -43,17 +43,6 @@ orbs:
           steps:
             - checkout
             - run:
-                name: Setup Orb Name, Orb Path
-                command: |
-                  echo <<parameters.packed-orb-full-path>>
-                  echo "$(echo <<parameters.packed-orb-full-path>> | grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')"
-                  echo "export PACKED_PATH=$(echo <<parameters.packed-orb-full-path>> | grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')" >> $BASH_ENV
-                  
-            - run:
-                name: Check if Env was setup correctly
-                command: |
-                  env
-            - run:
                 name: Pack the orb
                 command: |
 
@@ -72,8 +61,8 @@ orbs:
                 command: |
                   circleci orb validate <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
             - persist_to_workspace:
-                root: $PACKED_PATH #<<parameters.packed-orb-dir-path>> #$(echo "<<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>" | \n grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')
-                paths: <<parameters.packed-orb-name>>
+                root: <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>> #$(echo "<<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>" | \n grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')
+                #paths: <<parameters.packed-orb-name>>
         publish-dev-orb:
           description: "Publishes development version of an orb. If the orb repository in the circleci registry is not created yet, then\
                         it creates it with the orb-name provided."
@@ -104,7 +93,7 @@ orbs:
           executor: circleci-cli-image
           steps:
             - attach_workspace:
-                at: <<parameters.packed-orb-dir-path>>
+                at: <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
             - run: |
                 echo "start line"
                 ls -a
