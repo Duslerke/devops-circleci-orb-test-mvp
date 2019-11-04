@@ -93,7 +93,7 @@ orbs:
           executor: circleci-cli-image
           steps:
             - attach_workspace:
-                at: <<parameters.packed-orb-dir-path>><<parameters.packed-orb-name>>
+                at: <<parameters.packed-orb-dir-path>>
             - run: |
                 echo "start line"
                 ls -a
