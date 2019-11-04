@@ -35,9 +35,24 @@ orbs:
               description: "The name of the file that will contain packed orb's configuration"
               type: string
               default: "packed.yml"
+            packed-orb-full-path:
+              description: "File path of packed orb yml configuration."
+              type: string
+              default: "./packed/packed.yml"
           executor: circleci-cli-image
           steps:
             - checkout
+            - run:
+                name: Setup Orb Name, Orb Path
+                command: |
+                  echo <<parameters.packed-orb-full-path>>
+                  echo "$(echo <<parameters.packed-orb-full-path>> | grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')"
+                  echo "export PACKED_PATH=$(echo <<parameters.packed-orb-full-path>> | grep -oP '[-\.\/\\\w]+(?=\/|\\\w.yml)')" >> $BASH_ENV
+                  
+            - run:
+                name: Check if Env was setup correctly
+                command: |
+                  env
             - run:
                 name: Pack the orb
                 command: |
@@ -346,6 +361,7 @@ workflows:
           path-to-orb-dir: "./src"
           packed-orb-dir-path: "./packed/"
           packed-orb-name: "packed.yml"
+          packed-orb-full-path: "./packed/packed.yml"
           requires:
             - orbs-orb/shell-tests
       - orbs-orb/publish-dev-orb:
